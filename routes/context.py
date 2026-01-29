@@ -50,7 +50,7 @@ def select_context():
     # Caso vendedor con 1 sola sucursal: entra directo
     if (
         len(memberships) == 1
-        and memberships[0].role == Role.SELLER
+        and memberships[0].role in (Role.SELLER, Role.SUPERVISOR)
         and memberships[0].branch_id is not None
     ):
         m = memberships[0]
