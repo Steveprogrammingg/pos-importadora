@@ -97,6 +97,47 @@ def create_app() -> Flask:
     for bp in blueprints:
         app.register_blueprint(bp)
 
+    # -------------------------
+    # Logging + manejo global de errores
+    # -------------------------
+    import os
+    import logging
+    from logging.handlers import RotatingFileHandler
+    from flask import render_template, flash, request
+
+    log_dir = os.path.join(os.path.dirname(__file__), "logs")
+    os.makedirs(log_dir, exist_ok=True)
+
+    file_handler = RotatingFileHandler(
+        os.path.join(log_dir, "app.log"),
+        maxBytes=2_000_000,
+        backupCount=5,
+        encoding="utf-8",
+    )
+    file_handler.setLevel(logging.INFO)
+    file_handler.setFormatter(logging.Formatter(
+        "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+    ))
+
+    if not any(isinstance(h, RotatingFileHandler) for h in app.logger.handlers):
+        app.logger.addHandler(file_handler)
+    app.logger.setLevel(logging.INFO)
+
+    @app.errorhandler(500)
+    def _handle_500(e):
+        app.logger.exception("Error 500 no manejado: %s %s", request.method, request.path)
+        flash("Ocurrió un error interno. El problema fue registrado.", "error")
+        return render_template("error.html", message=None), 500
+
+    @app.errorhandler(403)
+    def _handle_403(e):
+        flash("No tienes permisos para acceder.", "error")
+        return render_template("error.html", message="Acceso denegado."), 403
+
+    @app.errorhandler(404)
+    def _handle_404(e):
+        return render_template("404.html"), 404
+
     return app
 
 

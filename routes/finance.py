@@ -190,7 +190,7 @@ def cash_dashboard():
     net = total_in - total_out
 
     return render_template(
-        "finance_cash.html",
+        "finance_cash_dashboard.html",
         d=d,
         moves=moves,
         total_in=float(total_in),

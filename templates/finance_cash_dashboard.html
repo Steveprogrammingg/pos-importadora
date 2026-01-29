@@ -4,25 +4,25 @@
 
 <div class="grid">
   <div class="panel">
-    <div class="label">Ingresos (últimos 7 días)</div>
+    <div class="label">Ingresos (del día)</div>
     <div class="value" style="font-size:22px;">{{ "%.2f"|format(total_in) }}</div>
   </div>
   <div class="panel">
-    <div class="label">Egresos (últimos 7 días)</div>
+    <div class="label">Egresos (del día)</div>
     <div class="value" style="font-size:22px;">{{ "%.2f"|format(total_out) }}</div>
   </div>
   <div class="panel">
-    <div class="label">Balance (últimos 7 días)</div>
-    <div class="value" style="font-size:22px;">{{ "%.2f"|format(balance) }}</div>
+    <div class="label">Balance (del día)</div>
+    <div class="value" style="font-size:22px;">{{ "%.2f"|format(net) }}</div>
   </div>
 </div>
 
 <div class="panel" style="margin-top:12px;">
   <h2 style="margin:0 0 10px 0;">Registrar movimiento</h2>
-  <form class="form" method="post" action="{{ url_for('finance.cash_add') }}">
+  <form class="form" method="post" action="{{ url_for('finance.cash_new_post') }}">
     <div>
       <label>Fecha</label>
-      <input type="date" name="move_date" value="{{ today }}" required>
+      <input type="date" name="move_date" value="{{ d.strftime('%Y-%m-%d') }}" required>
     </div>
     <div>
       <label>Tipo</label>
