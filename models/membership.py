@@ -6,9 +6,10 @@ from flask_login import login_required, current_user
 class Role:
     OWNER = "OWNER"
     ADMIN = "ADMIN"
+    SUPERVISOR = "SUPERVISOR"
     SELLER = "SELLER"
 
-    ALL = {OWNER, ADMIN, SELLER}
+    ALL = {OWNER, ADMIN, SUPERVISOR, SELLER}
 
 class CompanyUser(db.Model):
     __tablename__ = "company_users"
