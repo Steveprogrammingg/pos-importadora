@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Admin • Nueva sucursal</h1>
+
+<div class="panel" style="margin-bottom:12px;">
+  <div class="label">Crear sucursal</div>
+  <div class="muted" style="margin-top:6px;">
+    Tip: Si marcas como <b>Bodega Central</b>, el sistema recomienda tener solo una por empresa.
+  </div>
+</div>
+
+<div class="panel">
+  <form method="post" action="{{ url_for('admin.branches_new_post') }}" class="form" style="max-width:520px;">
+
+    <label>Nombre</label>
+    <input
+      name="name"
+      required
+      placeholder="Ej: Sucursal Centro"
+      autocomplete="off"
+    />
+
+    <label>Tipo</label>
+    <select name="is_warehouse">
+      <option value="0">Sucursal (ventas)</option>
+      <option value="1">Bodega Central (inventario principal)</option>
+    </select>
+
+    <div class="panel" style="margin-top:6px;">
+      <div class="label">Recomendación</div>
+      <div class="muted" style="margin-top:6px;">
+        Usa <b>Bodega Central</b> solo si esta será tu ubicación principal de stock.
+        Si ya existe una bodega activa, el sistema te bloqueará crear otra.
+      </div>
+    </div>
+
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+      <button class="btn" type="submit">Crear</button>
+      <a class="btn secondary" href="{{ url_for('admin.branches_list') }}">Volver</a>
+    </div>
+
+  </form>
+</div>
+{% endblock %}

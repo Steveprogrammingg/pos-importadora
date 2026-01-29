@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Reportes • Top Productos</h1>
+
+<div class="panel">
+  <form method="get" action="{{ url_for('reports_top.top_products') }}" class="form" style="max-width: 980px;">
+    <div class="grid" style="grid-template-columns: repeat(4, 1fr); gap: 12px;">
+
+      <div>
+        <label>Desde</label>
+        <input type="date" name="from" value="{{ date_from }}">
+      </div>
+
+      <div>
+        <label>Hasta</label>
+        <input type="date" name="to" value="{{ date_to }}">
+      </div>
+
+      <div>
+        <label>Sucursal</label>
+        <select name="branch_id">
+          {% for b in branches %}
+            <option value="{{ b.id }}" {% if b.id == selected_branch_id %}selected{% endif %}>
+              {{ b.name }}
+            </option>
+          {% endfor %}
+        </select>
+        <p class="muted" style="margin-top:6px;">
+          Nota: si eres vendedor, el sistema fuerza tu sucursal aunque elijas otra.
+        </p>
+      </div>
+
+      <div>
+        <label>Top (límite)</label>
+        <input type="number" name="limit" min="5" max="200" value="{{ limit_n }}">
+        <p class="muted" style="margin-top:6px;">Rango permitido: 5 a 200.</p>
+      </div>
+
+    </div>
+
+    <div style="margin-top: 12px; display:flex; gap:10px; flex-wrap: wrap;">
+      <button class="btn" type="submit">Filtrar</button>
+      <a class="btn secondary" href="{{ url_for('reports.sales_list') }}">Ver ventas</a>
+      <a class="btn secondary" href="{{ url_for('main.dashboard') }}">Volver</a>
+    </div>
+  </form>
+</div>
+
+<div class="grid" style="margin-top: 12px;">
+  <div class="panel">
+    <div class="label">Cantidad total vendida (rango)</div>
+    <div class="value" style="font-size:22px;">{{ "%.3f"|format(total_qty) }}</div>
+  </div>
+  <div class="panel">
+    <div class="label">Total vendido (rango)</div>
+    <div class="value" style="font-size:22px;">{{ "%.2f"|format(total_amount) }}</div>
+  </div>
+  <div class="panel">
+    <div class="label">Top mostrado</div>
+    <div class="value" style="font-size:22px;">{{ limit_n }}</div>
+  </div>
+</div>
+
+<div class="grid" style="margin-top: 12px; grid-template-columns: 1fr 1fr;">
+  <div class="panel">
+    <h2 style="margin:0;">Top por Cantidad</h2>
+
+    {% if not top_by_qty %}
+      <p class="muted" style="margin-top:10px;">No hay datos en ese rango.</p>
+    {% else %}
+      <table class="table" style="margin-top: 10px;">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th style="width:140px; text-align:right;">Cant.</th>
+            <th style="width:160px; text-align:right;">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for it in top_by_qty %}
+          <tr>
+            <td>
+              <b>{{ it.product_name }}</b>
+              <div class="muted" style="margin-top:4px;">
+                {% if it.sku %}SKU: {{ it.sku }}{% endif %}
+                {% if it.barcode %}
+                  {% if it.sku %} • {% endif %}
+                  Barcode: {{ it.barcode }}
+                {% endif %}
+              </div>
+            </td>
+            <td style="text-align:right;">{{ "%.3f"|format(it.qty_sum) }}</td>
+            <td style="text-align:right;">{{ "%.2f"|format(it.amount_sum) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </div>
+
+  <div class="panel">
+    <h2 style="margin:0;">Top por Monto</h2>
+
+    {% if not top_by_amount %}
+      <p class="muted" style="margin-top:10px;">No hay datos en ese rango.</p>
+    {% else %}
+      <table class="table" style="margin-top: 10px;">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th style="width:140px; text-align:right;">Cant.</th>
+            <th style="width:160px; text-align:right;">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for it in top_by_amount %}
+          <tr>
+            <td>
+              <b>{{ it.product_name }}</b>
+              <div class="muted" style="margin-top:4px;">
+                {% if it.sku %}SKU: {{ it.sku }}{% endif %}
+                {% if it.barcode %}
+                  {% if it.sku %} • {% endif %}
+                  Barcode: {{ it.barcode }}
+                {% endif %}
+              </div>
+            </td>
+            <td style="text-align:right;">{{ "%.3f"|format(it.qty_sum) }}</td>
+            <td style="text-align:right;">{{ "%.2f"|format(it.amount_sum) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

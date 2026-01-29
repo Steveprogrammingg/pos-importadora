@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Iniciar sesión</h1>
+
+<form method="post" action="{{ url_for('auth.login_post') }}" class="form">
+  <label>Email</label>
+  <input name="email" type="email" required placeholder="admin@demo.com" />
+
+  <label>Contraseña</label>
+  <input name="password" type="password" required placeholder="••••••••" />
+
+  <button type="submit" class="btn">Entrar</button>
+</form>
+
+<p class="muted">Si aún no tienes usuario, ejecuta <code>seed.py</code> (lo dejo abajo).</p>
+{% endblock %}

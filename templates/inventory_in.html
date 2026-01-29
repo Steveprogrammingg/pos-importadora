@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Inventario • Ingreso a Bodega</h1>
+
+<div class="panel">
+  <p class="muted"><b>Bodega:</b> {{ warehouse.name }} (ID {{ warehouse.id }})</p>
+
+  <form method="post" action="{{ url_for('inventory.stock_in_post') }}" class="form" style="max-width:520px;">
+    <input type="hidden" name="warehouse_id" value="{{ warehouse.id }}">
+
+    <label>Producto</label>
+    <select name="product_id" required>
+      {% for p in products %}
+        <option value="{{ p.id }}">{{ p.name }}{% if p.sku %} • SKU: {{ p.sku }}{% endif %}</option>
+      {% endfor %}
+    </select>
+
+    <label>Cantidad</label>
+    <input name="qty" required placeholder="Ej: 10 o 2.5" />
+
+    <label>Nota (opcional)</label>
+    <input name="note" placeholder="Factura/Proveedor/Comentario" />
+
+    <button class="btn" type="submit">Registrar ingreso</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ title or "POS Multi-Empresa" }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <div class="container">
+
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-title">POS Multi-Empresa</div>
+        <div class="brand-subtitle">
+          {% if session.get("company_id") and session.get("branch_id") %}
+            Contexto activo ✅
+          {% else %}
+            Selecciona contexto ⚠️
+          {% endif %}
+        </div>
+      </div>
+
+      <button class="nav-toggle" type="button" onclick="document.body.classList.toggle('nav-open')">
+        ☰
+      </button>
+
+      <nav class="topbar-right">
+        {% if current_user.is_authenticated %}
+
+          {# --- helpers de rol --- #}
+          {% set role = session.get("role") %}
+          {% set is_seller = (role == "SELLER") %}
+          {% set is_admin = (role == "ADMIN") %}
+          {% set is_owner_company = (role == "OWNER") %}
+          {% set is_admin_like = is_admin or is_owner_company %}
+
+          {% set system_role = session.get("system_role") %}
+          {% set is_system_owner = (system_role == "OWNER") %}
+
+          <a class="link" href="{{ url_for('main.dashboard') }}">Dashboard</a>
+
+          <span class="chip">Operación</span>
+          <a class="link" href="{{ url_for('pos.sale') }}">POS</a>
+          <a class="link" href="{{ url_for('clients.list_clients') }}">Clientes</a>
+
+          {% if is_admin_like %}
+            <span class="divider"></span>
+
+            <span class="chip">Reportes</span>
+            <a class="link" href="{{ url_for('reports.sales_list') }}">Ventas</a>
+            <a class="link" href="{{ url_for('reports_top.top_products') }}">Top Productos</a>
+
+            <span class="divider"></span>
+
+            <span class="chip">Inventario</span>
+            <a class="link" href="{{ url_for('inventory.stock_in_get') }}">Ingreso Bodega</a>
+            <a class="link" href="{{ url_for('inventory.transfer_get') }}">Transferencias</a>
+            <a class="link" href="{{ url_for('inventory_admin.stock_list') }}">Stock por sucursal</a>
+
+            <span class="divider"></span>
+
+            <span class="chip">Finanzas</span>
+            <a class="link" href="{{ url_for('finance.dashboard') }}">Panel</a>
+            <a class="link" href="{{ url_for('finance.cash_dashboard') }}">Caja</a>
+            <a class="link" href="{{ url_for('finance.expenses_list') }}">Gastos</a>
+
+            <span class="divider"></span>
+
+            <span class="chip">Admin</span>
+            <a class="link" href="{{ url_for('admin.branches_list') }}">Sucursales</a>
+            <a class="link" href="{{ url_for('admin.products_list') }}">Productos</a>
+            <a class="link" href="{{ url_for('admin.users_list') }}">Usuarios</a>
+          {% endif %}
+
+          {# Vendedores también pueden registrar gastos/caja #}
+          {% if is_seller %}
+            <span class="divider"></span>
+            <span class="chip">Finanzas</span>
+            <a class="link" href="{{ url_for('finance.cash_dashboard') }}">Caja</a>
+            <a class="link" href="{{ url_for('finance.expenses_list') }}">Gastos</a>
+            <a class="link" href="{{ url_for('finance.expenses_new_get') }}">Nuevo gasto</a>
+          {% endif %}
+
+          {% if is_system_owner %}
+            <span class="divider"></span>
+            <span class="chip">Sistema</span>
+            <a class="link" href="{{ url_for('owner.companies_list') }}">Empresas</a>
+          {% endif %}
+
+          <span class="divider"></span>
+
+          <a class="link" href="{{ url_for('context.select_context') }}">Cambiar contexto</a>
+          <a class="link danger" href="{{ url_for('auth.logout') }}">Salir</a>
+        {% endif %}
+      </nav>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="alerts">
+          {% for category, msg in messages %}
+            <div class="alert {{ category }}">{{ msg }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <main class="card">
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+      <span class="muted">POS offline-first • Flask + SQLAlchemy + SQLite</span>
+    </footer>
+
+  </div>
+</body>
+</html>

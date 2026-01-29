@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Caja</h1>
+
+<div class="grid">
+  <div class="panel">
+    <div class="label">Ingresos (últimos 7 días)</div>
+    <div class="value" style="font-size:22px;">{{ "%.2f"|format(total_in) }}</div>
+  </div>
+  <div class="panel">
+    <div class="label">Egresos (últimos 7 días)</div>
+    <div class="value" style="font-size:22px;">{{ "%.2f"|format(total_out) }}</div>
+  </div>
+  <div class="panel">
+    <div class="label">Balance (últimos 7 días)</div>
+    <div class="value" style="font-size:22px;">{{ "%.2f"|format(balance) }}</div>
+  </div>
+</div>
+
+<div class="panel" style="margin-top:12px;">
+  <h2 style="margin:0 0 10px 0;">Registrar movimiento</h2>
+  <form class="form" method="post" action="{{ url_for('finance.cash_add') }}">
+    <div>
+      <label>Fecha</label>
+      <input type="date" name="move_date" value="{{ today }}" required>
+    </div>
+    <div>
+      <label>Tipo</label>
+      <select name="move_type">
+        <option value="IN">IN (Ingreso)</option>
+        <option value="OUT">OUT (Egreso)</option>
+      </select>
+    </div>
+    <div>
+      <label>Monto</label>
+      <input type="number" name="amount" step="0.01" min="0" required>
+    </div>
+    <div>
+      <label>Nota</label>
+      <input name="note" maxlength="255">
+    </div>
+    <button class="btn" type="submit">Guardar</button>
+  </form>
+</div>
+
+{% if moves %}
+  <div class="panel" style="margin-top:12px;">
+    <h2 style="margin:0;">Movimientos recientes</h2>
+    <div class="table-wrap" style="margin-top:10px;">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Tipo</th>
+            <th>Monto</th>
+            <th>Nota</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in moves %}
+          <tr>
+            <td>{{ m.move_date.strftime('%Y-%m-%d') }}</td>
+            <td>{{ m.move_type }}</td>
+            <td>{{ "%.2f"|format(m.amount) }}</td>
+            <td>{{ m.note or '-' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Nuevo gasto</h1>
+
+<form class="form" method="post">
+  <div>
+    <label>Fecha</label>
+    <input type="date" name="expense_date" value="{{ today }}" required>
+  </div>
+
+  <div>
+    <label>Categoría</label>
+    <select name="category">
+      {% for c in categories %}
+        <option value="{{ c }}">{{ c }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div>
+    <label>Monto</label>
+    <input type="number" name="amount" step="0.01" min="0" required>
+  </div>
+
+  <div>
+    <label>Método de pago</label>
+    <select name="payment_method">
+      {% for p in pay_methods %}
+        <option value="{{ p }}">{{ p }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div>
+    <label>Proveedor (opcional)</label>
+    <input name="vendor" maxlength="120">
+  </div>
+
+  <div>
+    <label>Nota (opcional)</label>
+    <textarea name="note" rows="3"></textarea>
+  </div>
+
+  <button class="btn" type="submit">Guardar</button>
+  <a class="btn secondary" href="{{ url_for('finance.expenses_list') }}">Volver</a>
+</form>
+
+{% endblock %}

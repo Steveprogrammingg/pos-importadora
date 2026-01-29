@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Usuarios (Empresa actual)</h1>
+
+<div class="panel" style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; align-items:flex-start;">
+  <div>
+    <div class="label">Gestión de usuarios</div>
+    <div class="muted" style="margin-top:6px;">
+      Consejo: “Eliminar” seguro = desactivar el permiso (no borra ventas/historial).
+    </div>
+  </div>
+
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <a class="btn" href="{{ url_for('admin.users_new_get') }}">+ Nuevo usuario</a>
+    <a class="btn secondary" href="{{ url_for('main.dashboard') }}">Volver</a>
+  </div>
+</div>
+
+<div class="panel" style="margin-top:12px;">
+  {% if not memberships %}
+    <p class="muted">No hay usuarios asignados a esta empresa.</p>
+  {% else %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Usuario</th>
+            <th>Email</th>
+            <th>Rol</th>
+            <th>Sucursal</th>
+            <th>Estado</th>
+            <th style="text-align:right;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in memberships %}
+            <tr>
+              <td><b>{{ m.user.full_name }}</b><div class="muted">ID: {{ m.user.id }} • Membresía: {{ m.id }}</div></td>
+              <td>{{ m.user.email }}</td>
+              <td>{{ m.role }}</td>
+              <td>{% if m.branch %}{{ m.branch.name }}{% else %}Todas (Global){% endif %}</td>
+              <td>
+                {% if m.is_active %}
+                  <span class="muted">Activo ✅</span>
+                {% else %}
+                  <span class="muted">Inactivo ⛔</span>
+                {% endif %}
+              </td>
+              <td style="text-align:right;">
+                <div style="display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap;">
+                  <a class="btn secondary" href="{{ url_for('admin.users_edit_get', membership_id=m.id) }}">Editar</a>
+
+                  <form method="post" action="{{ url_for('admin.users_toggle_membership', membership_id=m.id) }}">
+                    {% if m.is_active %}
+                      <button class="btn secondary" type="submit"
+                        onclick="return confirm('¿Desactivar este acceso? (No borra historial)')">
+                        Desactivar
+                      </button>
+                    {% else %}
+                      <button class="btn" type="submit"
+                        onclick="return confirm('¿Activar este acceso?')">
+                        Activar
+                      </button>
+                    {% endif %}
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+</div>
+
+{% endblock %}

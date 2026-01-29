@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Admin • Sucursales</h1>
+
+<div class="panel" style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:center;">
+  <div>
+    <div class="label">Gestión de sucursales</div>
+    <div class="muted" style="margin-top:6px;">
+      Tip: “Eliminar” = desactivar (no borra historial). La bodega puede bloquearse si tiene stock.
+    </div>
+  </div>
+
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <a class="btn" href="{{ url_for('admin.branches_new_get') }}">+ Nueva sucursal</a>
+    <a class="btn secondary" href="{{ url_for('main.dashboard') }}">Volver</a>
+  </div>
+</div>
+
+<div class="panel" style="margin-top: 12px;">
+  {% if not branches %}
+    <p class="muted">No hay sucursales registradas.</p>
+  {% else %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Sucursal</th>
+            <th style="width:170px;">Tipo</th>
+            <th style="width:150px;">Estado</th>
+            <th style="width:260px; text-align:right;">Acciones</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for b in branches %}
+          <tr>
+            <td>
+              <b>{{ b.name }}</b>
+              <div class="muted" style="margin-top:4px;">
+                ID: {{ b.id }}
+                {% if b.is_warehouse %}
+                  • Bodega central
+                {% endif %}
+              </div>
+            </td>
+
+            <td>
+              {% if b.is_warehouse %}
+                <span class="chip">Bodega</span>
+              {% else %}
+                <span class="chip">Sucursal</span>
+              {% endif %}
+            </td>
+
+            <td>
+              {% if b.is_active %}
+                <span class="chip" style="border-color: rgba(31,106,67,.45);">Activa ✅</span>
+              {% else %}
+                <span class="chip" style="border-color: rgba(255,77,109,.45);">Inactiva ⛔</span>
+              {% endif %}
+            </td>
+
+            <td style="text-align:right;">
+              <div style="display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap;">
+                <a class="btn secondary" href="{{ url_for('admin.branches_edit_get', branch_id=b.id) }}">
+                  Editar
+                </a>
+
+                <form method="post" action="{{ url_for('admin.branches_toggle_active', branch_id=b.id) }}">
+                  {% if b.is_active %}
+                    {% if b.is_warehouse %}
+                      <button
+                        class="btn secondary"
+                        type="submit"
+                        onclick="return confirm('¿Desactivar la Bodega Central?\\n\\n⚠️ Si tiene stock, el sistema no permitirá desactivarla.\\n(No se borra historial)')"
+                      >
+                        Desactivar
+                      </button>
+                    {% else %}
+                      <button
+                        class="btn secondary"
+                        type="submit"
+                        onclick="return confirm('¿Desactivar esta sucursal?\\n(No se borra historial)')"
+                      >
+                        Desactivar
+                      </button>
+                    {% endif %}
+                  {% else %}
+                    <button class="btn" type="submit">
+                      Activar
+                    </button>
+                  {% endif %}
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <p class="muted" style="margin-top:10px;">
+      Consejo: desactivar es más seguro que borrar. Si necesitas “eliminar” una sucursal con historial, se recomienda dejarla inactiva.
+    </p>
+  {% endif %}
+</div>
+
+{% endblock %}

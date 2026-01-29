@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Nueva empresa</h1>
+
+<div class="panel">
+  <form method="post" class="form" style="max-width:520px;">
+    <label>Nombre</label>
+    <input name="name" placeholder="Ej: Importadora Steve" required>
+
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <button class="btn" type="submit">Guardar</button>
+      <a class="btn secondary" href="{{ url_for('owner.companies_list') }}">Volver</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

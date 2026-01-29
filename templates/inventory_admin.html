@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Inventario</h1>
+
+<div class="panel">
+  <form method="get" action="{{ url_for('inventory_admin.inventory_overview') }}" class="form" style="max-width: 920px;">
+    <div class="grid" style="grid-template-columns: repeat(3, 1fr); gap: 12px;">
+      <div>
+        <label>Sucursal / Bodega</label>
+        <select name="branch_id" onchange="this.form.submit()">
+          {% for b in branches %}
+            <option value="{{ b.id }}" {% if selected_branch and b.id == selected_branch.id %}selected{% endif %}>
+              {{ b.name }}{% if b.is_warehouse %} (Bodega){% endif %}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div style="grid-column: span 2;">
+        <label>Buscar producto (nombre / SKU / barcode)</label>
+        <input name="q" value="{{ q }}" placeholder="Escribe para filtrar..." autocomplete="off">
+      </div>
+    </div>
+
+    <div style="margin-top: 12px; display:flex; gap:10px; flex-wrap: wrap;">
+      <button class="btn" type="submit">Filtrar</button>
+      <a class="btn secondary" href="{{ url_for('main.dashboard') }}">Volver</a>
+    </div>
+  </form>
+</div>
+
+<div class="panel" style="margin-top: 12px;">
+  {% if not selected_branch %}
+    <p class="muted">No hay sucursales activas para mostrar.</p>
+  {% else %}
+    <div class="muted">
+      Mostrando inventario de: <b>{{ selected_branch.name }}</b>
+      {% if selected_branch.is_warehouse %}(Bodega){% endif %}
+      • Máximo 500 productos por rendimiento offline.
+    </div>
+
+    {% if not rows %}
+      <p class="muted" style="margin-top:10px;">No hay productos.</p>
+    {% else %}
+      <table class="table" style="margin-top: 10px;">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th style="width:120px; text-align:right;">Stock</th>
+            <th style="width:260px; text-align:right;">Ajustar (stock final)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in rows %}
+          <tr>
+            <td>
+              <b>{{ r.name }}</b>
+              <div class="muted" style="margin-top:4px;">
+                {% if r.sku %}SKU: {{ r.sku }}{% endif %}
+                {% if r.barcode %}
+                  {% if r.sku %} • {% endif %}
+                  Barcode: {{ r.barcode }}
+                {% endif %}
+                {% if not r.is_active %}
+                  <div class="muted" style="margin-top:4px;">⛔ Producto inactivo</div>
+                {% endif %}
+              </div>
+            </td>
+
+            <td style="text-align:right;">
+              <b>{{ r.qty }}</b>
+            </td>
+
+            <td style="text-align:right;">
+              <form method="post" action="{{ url_for('inventory_admin.inventory_adjust') }}" style="display:flex; justify-content:flex-end; gap:8px; align-items:center; flex-wrap:wrap;">
+                <input type="hidden" name="branch_id" value="{{ selected_branch.id }}">
+                <input type="hidden" name="product_id" value="{{ r.product_id }}">
+                <input name="final_qty" type="number" step="0.001" min="0" value="{{ r.qty }}" style="width:120px;">
+                <button class="btn secondary" type="submit">Ajustar</button>
+              </form>
+              <div class="muted" style="margin-top:6px; text-align:right;">
+                Ajuste manual registra Kardex (ADJUST).
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  {% endif %}
+</div>
+{% endblock %}

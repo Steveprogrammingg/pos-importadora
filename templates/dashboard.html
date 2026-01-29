@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Dashboard</h1>
+
+<div class="grid">
+  <div class="panel">
+    <div class="label">Usuario</div>
+    <div class="value">{{ user.full_name }} ({{ user.email }})</div>
+  </div>
+
+  <div class="panel">
+    <div class="label">Empresa</div>
+    <div class="value">{{ company.name }}</div>
+  </div>
+
+  <div class="panel">
+    <div class="label">Sucursal / Ubicación</div>
+    <div class="value">{{ branch.name }}{% if branch.is_warehouse %} (Bodega Central){% endif %}</div>
+  </div>
+</div>
+
+<div class="grid" style="margin-top: 12px;">
+  <div class="panel">
+    <div class="label">Ventas (Hoy)</div>
+    <div class="value" style="font-size: 22px;">
+      {{ "%.2f"|format(stats.today_total if stats else 0) }}
+    </div>
+    <div class="muted">{{ stats.today_count if stats else 0 }} ventas</div>
+  </div>
+
+  <div class="panel">
+    <div class="label">Gastos (Hoy)</div>
+    <div class="value" style="font-size: 22px;">
+      {{ "%.2f"|format(stats.today_expenses if stats else 0) }}
+    </div>
+    <div class="muted">Balance hoy: {{ "%.2f"|format(stats.today_net if stats else 0) }}</div>
+  </div>
+
+  <div class="panel">
+    <div class="label">Ventas (Últimos 7 días)</div>
+    <div class="value" style="font-size: 22px;">
+      {{ "%.2f"|format(stats.last7_total if stats else 0) }}
+    </div>
+    <div class="muted">{{ stats.last7_count if stats else 0 }} ventas</div>
+  </div>
+</div>
+
+<div class="panel" style="margin-top: 12px;">
+  <div class="label">Accesos rápidos</div>
+  <div style="display:flex; gap:10px; flex-wrap: wrap; margin-top: 10px;">
+    <a class="btn secondary" href="{{ url_for('pos.sale') }}">Ir al POS</a>
+    <a class="btn secondary" href="{{ url_for('inventory.transfer_get') }}">Transferencias</a>
+    <a class="btn secondary" href="{{ url_for('inventory.stock_in_get') }}">Ingreso Bodega</a>
+    <a class="btn secondary" href="{{ url_for('finance.cash_dashboard') }}">Caja</a>
+    <a class="btn" href="{{ url_for('reports.sales_list') }}">Ver ventas</a>
+  </div>
+</div>
+
+<div class="panel" style="margin-top: 12px;">
+  <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+    <h2 style="margin:0;">Últimas ventas</h2>
+    <a class="link" href="{{ url_for('reports.sales_list') }}">Ver todas</a>
+  </div>
+
+  {% if recent_sales %}
+    <div class="table-wrap" style="margin-top:10px;">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Fecha</th>
+            <th>Total</th>
+            <th>Tipo precio</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in recent_sales %}
+          <tr>
+            <td><b>#{{ s.id }}</b></td>
+            <td>{{ s.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
+            <td>{{ "%.2f"|format(s.total) }}</td>
+            <td>{{ s.price_mode }}</td>
+            <td style="text-align:right;">
+              <a class="link" href="{{ url_for('pos.ticket', sale_id=s.id) }}">Ticket</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="muted" style="margin-top: 10px;">Aún no hay ventas registradas en esta sucursal.</p>
+  {% endif %}
+</div>
+
+{% endblock %}

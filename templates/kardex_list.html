@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Kardex • Movimientos</h1>
+
+<div class="panel">
+  <form method="get" action="{{ url_for('kardex.list_kardex') }}" class="form" style="max-width: 980px;">
+    <div class="grid" style="grid-template-columns: repeat(4, 1fr); gap: 12px;">
+
+      <div>
+        <label>Desde</label>
+        <input type="date" name="from" value="{{ date_from }}">
+      </div>
+
+      <div>
+        <label>Hasta</label>
+        <input type="date" name="to" value="{{ date_to }}">
+      </div>
+
+      <div>
+        <label>Tipo mov.</label>
+        <select name="move_type">
+          <option value="">(Todos)</option>
+          {% for mt in move_types %}
+            <option value="{{ mt }}" {% if mt == selected_move_type %}selected{% endif %}>{{ mt }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label>Ubicación</label>
+        <select name="location_id">
+          <option value="">(Todas)</option>
+          {% for b in locations %}
+            <option value="{{ b.id }}" {% if b.id == selected_location_id %}selected{% endif %}>
+              {{ b.name }}{% if b.is_warehouse %} (Bodega){% endif %}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+    </div>
+
+    <div class="grid" style="grid-template-columns: 2fr 1fr; gap: 12px; margin-top: 10px;">
+      <div>
+        <label>Buscar producto (Barcode / SKU / Nombre)</label>
+        <input name="product_q" value="{{ product_q }}" placeholder="Ej: 750... / SKU123 / Pan dulce...">
+      </div>
+
+      <div>
+        <label>o Product ID</label>
+        <input name="product_id" value="{{ selected_product_id or '' }}" placeholder="Ej: 15">
+      </div>
+    </div>
+
+    <div style="margin-top: 12px; display:flex; gap:10px; flex-wrap: wrap;">
+      <button class="btn" type="submit">Filtrar</button>
+      <a class="btn secondary" href="{{ url_for('main.dashboard') }}">Volver</a>
+    </div>
+
+    <p class="muted" style="margin-top:10px;">
+      Mostrando máximo 300 movimientos (offline-friendly).
+    </p>
+  </form>
+</div>
+
+<div class="panel" style="margin-top: 12px;">
+  <h2 style="margin:0;">Listado</h2>
+
+  {% if not movements %}
+    <p class="muted" style="margin-top:10px;">No hay movimientos con esos filtros.</p>
+  {% else %}
+    <table class="table" style="margin-top: 10px;">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Tipo</th>
+          <th>Producto</th>
+          <th style="width:120px;">Cantidad</th>
+          <th>Desde</th>
+          <th>Hacia</th>
+          <th>Nota</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in movements %}
+        <tr>
+          <td>{{ m.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
+          <td><b>{{ m.move_type }}</b></td>
+          <td>
+            {% set p = product_map.get(m.product_id) %}
+            {% if p %}
+              {{ p.name }}
+              <div class="muted" style="margin-top:4px;">
+                {% if p.sku %}SKU: {{ p.sku }}{% endif %}
+                {% if p.barcode %}
+                  {% if p.sku %} • {% endif %}
+                  Barcode: {{ p.barcode }}
+                {% endif %}
+              </div>
+            {% else %}
+              Producto #{{ m.product_id }}
+            {% endif %}
+          </td>
+          <td>{{ m.qty }}</td>
+          <td>
+            {% if m.from_location_id %}
+              {% set b = location_map.get(m.from_location_id) %}
+              {{ b.name if b else ("#" ~ m.from_location_id) }}
+            {% else %}
+              —
+            {% endif %}
+          </td>
+          <td>
+            {% if m.to_location_id %}
+              {% set b = location_map.get(m.to_location_id) %}
+              {{ b.name if b else ("#" ~ m.to_location_id) }}
+            {% else %}
+              —
+            {% endif %}
+          </td>
+          <td>{{ m.note or "" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+</div>
+
+{% endblock %}

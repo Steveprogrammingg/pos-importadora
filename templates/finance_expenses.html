@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Gastos</h1>
+
+<form class="form" method="get" style="max-width:100%;">
+  <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:end;">
+    <div>
+      <label>Desde</label>
+      <input type="date" name="start" value="{{ start.strftime('%Y-%m-%d') }}">
+    </div>
+    <div>
+      <label>Hasta</label>
+      <input type="date" name="end" value="{{ end.strftime('%Y-%m-%d') }}">
+    </div>
+    <button class="btn" type="submit">Filtrar</button>
+    <a class="btn secondary" href="{{ url_for('finance.expenses_new_get') }}">Nuevo gasto</a>
+  </div>
+</form>
+
+<div class="panel" style="margin-top:12px;">
+  <div class="label">Total periodo</div>
+  <div class="value" style="font-size:22px;">{{ "%.2f"|format(total) }}</div>
+</div>
+
+{% if expenses %}
+  <div class="table-wrap" style="margin-top:12px;">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Categoría</th>
+          <th>Monto</th>
+          <th>Método</th>
+          <th>Proveedor</th>
+          <th>Nota</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in expenses %}
+        <tr>
+          <td>{{ e.expense_date.strftime('%Y-%m-%d') }}</td>
+          <td>{{ e.category }}</td>
+          <td>{{ "%.2f"|format(e.amount) }}</td>
+          <td>{{ e.payment_method }}</td>
+          <td>{{ e.vendor or '-' }}</td>
+          <td>{{ e.note or '-' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <p class="muted" style="margin-top:12px;">No hay gastos en el rango seleccionado.</p>
+{% endif %}
+
+{% endblock %}

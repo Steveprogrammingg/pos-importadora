@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Admin • Productos</h1>
+
+<div class="panel" style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; align-items:flex-start;">
+  <div>
+    <div class="label">Productos con 3 precios</div>
+    <div class="muted" style="margin-top:6px;">
+      Tip: desactivar evita venderlo, pero mantiene historial (ventas/stock/kardex).
+    </div>
+  </div>
+
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <a class="btn" href="{{ url_for('admin.products_new_get') }}">+ Nuevo producto</a>
+    <a class="btn secondary" href="{{ url_for('main.dashboard') }}">Volver</a>
+  </div>
+</div>
+
+<div class="grid" style="grid-template-columns: 2fr 1fr; gap:12px; margin-top:12px;">
+  <div class="panel">
+    <label>Buscar</label>
+    <input
+      id="searchInput"
+      placeholder="Nombre / SKU / Barcode / ID..."
+      autocomplete="off"
+    />
+    <div class="muted" style="margin-top:6px;">
+      Se filtra en pantalla (no afecta la base de datos).
+    </div>
+
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+      <button class="btn secondary" type="button" onclick="setFilter('all')">Todos</button>
+      <button class="btn secondary" type="button" onclick="setFilter('active')">Activos</button>
+      <button class="btn secondary" type="button" onclick="setFilter('inactive')">Inactivos</button>
+
+      <span class="divider"></span>
+
+      <button class="btn secondary" type="button" onclick="setSort('name')">Orden: Nombre</button>
+      <button class="btn secondary" type="button" onclick="setSort('id')">Orden: ID</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="label">Mostrando</div>
+    <div class="value" style="font-size:22px;">
+      <span id="shownCount">0</span> / <span id="totalCount">0</span>
+    </div>
+    <div class="muted" style="margin-top:6px;">productos</div>
+
+    <hr style="border:0; border-top:1px solid #223354; margin: 12px 0;">
+
+    <div class="label">Atajos</div>
+    <div class="muted" style="margin-top:6px;">
+      Busca por SKU o Barcode para editar rápido.
+    </div>
+  </div>
+</div>
+
+<div class="panel" style="margin-top:12px;">
+  {% if not products %}
+    <p class="muted">No hay productos registrados.</p>
+  {% else %}
+
+    <div class="table-wrap">
+      <table class="table" id="productsTable">
+        <thead>
+          <tr>
+            <th style="width:90px;">Imagen</th>
+            <th>Producto</th>
+            <th style="width:140px; text-align:right;">Minorista</th>
+            <th style="width:140px; text-align:right;">Mayorista</th>
+            <th style="width:140px; text-align:right;">Especial</th>
+            <th style="width:120px;">Estado</th>
+            <th style="width:240px; text-align:right;">Acciones</th>
+          </tr>
+        </thead>
+
+        <tbody id="productsBody">
+          {% for p in products %}
+          <tr class="product-row"
+              data-id="{{ p.id }}"
+              data-name="{{ (p.name or '')|lower }}"
+              data-active="{{ 1 if p.is_active else 0 }}"
+              data-search="{{ (p.name ~ ' ' ~ (p.sku or '') ~ ' ' ~ (p.barcode or '') ~ ' ' ~ p.id)|lower }}">
+
+            <td>
+              {% if p.image_path %}
+                <img src="{{ url_for('static', filename=p.image_path) }}?v={{ p.image_updated_at.timestamp() if p.image_updated_at else 1 }}" style="width:72px; height:54px; object-fit:cover; border-radius:10px; border:1px solid rgba(255,255,255,0.06);">
+              {% else %}
+                <div class="muted" style="width:72px; height:54px; display:flex; align-items:center; justify-content:center; border-radius:10px; border:1px solid rgba(255,255,255,0.06);">IMG</div>
+              {% endif %}
+            </td>
+
+            <td>
+              <b>{{ p.name }}</b>
+
+              <div class="muted" style="margin-top:4px;">
+                {% if p.sku %}SKU: {{ p.sku }}{% endif %}
+                {% if p.barcode %}
+                  {% if p.sku %} • {% endif %}
+                  Barcode: {{ p.barcode }}
+                {% endif %}
+              </div>
+
+              <div class="muted" style="margin-top:4px;">ID: {{ p.id }}</div>
+            </td>
+
+            <td style="text-align:right;">{{ "%.2f"|format(p.price_minorista or 0) }}</td>
+            <td style="text-align:right;">{{ "%.2f"|format(p.price_mayorista or 0) }}</td>
+            <td style="text-align:right;">{{ "%.2f"|format(p.price_especial or 0) }}</td>
+
+            <td>
+              {% if p.is_active %}
+                <span class="muted">Activo ✅</span>
+              {% else %}
+                <span class="muted">Inactivo ⛔</span>
+              {% endif %}
+            </td>
+
+            <td style="text-align:right;">
+              <div style="display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap;">
+                <a class="btn secondary" href="{{ url_for('admin.products_edit_get', product_id=p.id) }}">Editar</a>
+
+                <form method="post" action="{{ url_for('admin.products_toggle_active', product_id=p.id) }}">
+                  {% if p.is_active %}
+                    <button class="btn secondary" type="submit"
+                      onclick="return confirm('¿Desactivar este producto? (No se borrará el historial)')">
+                      Desactivar
+                    </button>
+                  {% else %}
+                    <button class="btn" type="submit"
+                      onclick="return confirm('¿Activar este producto?')">
+                      Activar
+                    </button>
+                  {% endif %}
+                </form>
+              </div>
+            </td>
+
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <p class="muted" style="margin-top:10px;">
+      Consejo: si escaneas barcode en Admin, también puedes pegarlo aquí para localizar el producto y editarlo.
+    </p>
+
+  {% endif %}
+</div>
+
+<script>
+  const input = document.getElementById("searchInput");
+  const tbody = document.getElementById("productsBody");
+  let rows = Array.from(document.querySelectorAll(".product-row"));
+
+  const shownEl = document.getElementById("shownCount");
+  const totalEl = document.getElementById("totalCount");
+
+  let currentFilter = "all"; // all | active | inactive
+  let currentSort = "name";  // name | id
+
+  function updateCounts() {
+    const visible = rows.filter(r => r.style.display !== "none").length;
+    shownEl.textContent = String(visible);
+    totalEl.textContent = String(rows.length);
+  }
+
+  function applyFilterAndSearch() {
+    const q = (input.value || "").trim().toLowerCase();
+
+    rows.forEach(r => {
+      const hay = (r.dataset.search || "");
+      const isActive = (r.dataset.active === "1");
+
+      const passSearch = (!q || hay.includes(q));
+      const passFilter =
+        (currentFilter === "all") ||
+        (currentFilter === "active" && isActive) ||
+        (currentFilter === "inactive" && !isActive);
+
+      r.style.display = (passSearch && passFilter) ? "" : "none";
+    });
+
+    updateCounts();
+  }
+
+  function setFilter(f) {
+    currentFilter = f;
+    applyFilterAndSearch();
+  }
+
+  function setSort(s) {
+    currentSort = s;
+
+    rows.sort((a, b) => {
+      if (currentSort === "id") {
+        return Number(a.dataset.id) - Number(b.dataset.id);
+      }
+      // name
+      return (a.dataset.name || "").localeCompare(b.dataset.name || "");
+    });
+
+    rows.forEach(r => tbody.appendChild(r));
+    applyFilterAndSearch();
+  }
+
+  if (input) input.addEventListener("input", applyFilterAndSearch);
+
+  // init
+  setSort("name");
+  setFilter("all");
+</script>
+{% endblock %}

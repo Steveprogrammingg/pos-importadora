@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>POS • Venta</h1>
+
+<div class="grid" style="grid-template-columns: 1fr; gap: 12px;">
+
+  <!-- ✅ ACCESO RÁPIDO: TOP 10 -->
+  <div class="panel">
+    <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:center;">
+      <div>
+        <h2 style="margin:0;">Acceso rápido</h2>
+        <div class="muted" style="margin-top:6px;">
+          Top 10 más vendidos de esta sucursal (últimos 30 días). Click = agregar al carrito.
+        </div>
+      </div>
+      <div class="muted">
+        Precio actual: <b>{{ cart.get("price_mode") }}</b>
+      </div>
+    </div>
+
+    {% if quick_products %}
+      <div class="quick-grid" style="margin-top:12px;">
+        {% for p in quick_products %}
+          <form method="post" action="{{ url_for('pos.cart_add') }}" class="quick-card">
+            <input type="hidden" name="product_id" value="{{ p.id }}">
+
+            <div class="quick-img">
+              {% if p.image_url %}
+                <img src="{{ p.image_url }}" alt="{{ p.name }}">
+              {% else %}
+                <div class="quick-placeholder">IMG</div>
+              {% endif %}
+            </div>
+
+            <div class="quick-body">
+              <div class="quick-title">{{ p.name }}</div>
+              <div class="quick-meta">
+                {% if p.sku %}<span>SKU: {{ p.sku }}</span>{% endif %}
+                {% if p.barcode %}<span>Barcode: {{ p.barcode }}</span>{% endif %}
+              </div>
+            </div>
+
+            <button class="btn" type="submit" style="width:100%; margin-top:10px;">
+              + Agregar
+            </button>
+          </form>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="muted" style="margin-top:10px;">No hay productos para mostrar aún.</p>
+    {% endif %}
+  </div>
+
+  <!-- CLIENTE -->
+  <div class="panel">
+    <h2 style="margin:0 0 10px 0;">Cliente</h2>
+
+    {% if cart.get("client_id") %}
+      <div class="grid" style="grid-template-columns: 1fr 220px; gap: 12px; align-items: end;">
+        <div class="panel">
+          <div class="label">Cliente seleccionado</div>
+          <div class="value">{{ cart.get("client_name") }}</div>
+          <div class="muted" style="margin-top:6px;">
+            Precio automático: <b>{{ cart.get("price_mode") }}</b>
+          </div>
+        </div>
+
+        <form method="post" action="{{ url_for('pos.cart_set_client') }}">
+          <input type="hidden" name="client_id" value="0">
+          <button class="btn secondary" type="submit">Quitar cliente</button>
+        </form>
+      </div>
+
+    {% else %}
+      <form method="post" action="{{ url_for('pos.cart_set_client') }}" class="form" style="max-width: 720px;">
+        <label>Buscar cliente (por nombre)</label>
+
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap: wrap;">
+          <input
+            id="clientSearch"
+            placeholder="Ej: Juan Pérez"
+            autocomplete="off"
+            style="flex:1; min-width: 260px;"
+          />
+          <input type="hidden" name="client_id" id="clientId">
+          <button class="btn" type="submit" id="clientBtn" disabled>Seleccionar</button>
+          <a class="btn secondary" href="{{ url_for('clients.new_get') }}">Nuevo cliente</a>
+        </div>
+
+        <div id="clientResults" class="panel" style="display:none; margin-top:10px;"></div>
+
+        <p class="muted" style="margin-top:10px;">
+          Al elegir un cliente, el sistema cambia el precio automáticamente según su tipo.
+        </p>
+      </form>
+    {% endif %}
+  </div>
+
+  <!-- TIPO DE PRECIO -->
+  <div class="panel">
+    <form method="post" action="{{ url_for('pos.cart_set_price_mode') }}" class="form" style="max-width: 520px;">
+      <label>Tipo de precio (manual)</label>
+      <select name="price_mode" onchange="this.form.submit()">
+        <option value="minorista" {% if cart.get("price_mode") == "minorista" %}selected{% endif %}>Minorista</option>
+        <option value="mayorista" {% if cart.get("price_mode") == "mayorista" %}selected{% endif %}>Mayorista</option>
+        <option value="especial" {% if cart.get("price_mode") == "especial" %}selected{% endif %}>Especial</option>
+      </select>
+      <p class="muted">Si seleccionas cliente, el precio se ajusta automático (puedes cambiarlo manual si deseas).</p>
+    </form>
+  </div>
+
+  <!-- ESCANEO -->
+  <div class="panel">
+    <h2>Escanear código / Buscar</h2>
+
+    <form method="post" action="{{ url_for('pos.cart_add') }}" class="form" style="max-width: 520px;">
+      <label>Escanear Barcode o escribir SKU / Nombre</label>
+      <input
+        name="query"
+        id="scanInput"
+        autofocus
+        placeholder="Escanea el código (Enter) o escribe SKU / nombre..."
+        autocomplete="off"
+      />
+      <button class="btn" type="submit">Agregar</button>
+    </form>
+
+    <p class="muted">Tip: si el producto ya está en el carrito, suma cantidad automáticamente.</p>
+  </div>
+
+  <!-- CARRITO -->
+  <div class="panel">
+    <h2>Carrito</h2>
+
+    {% set items = cart.get("items", []) %}
+    {% if not items %}
+      <p class="muted">Carrito vacío. Escanea un producto para comenzar.</p>
+    {% else %}
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th style="width:160px;">Cantidad</th>
+              <th style="width:140px;">P. Unitario</th>
+              <th style="width:140px;">Subtotal</th>
+              <th style="width:90px;"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for it in items %}
+              <tr>
+                <td><b>{{ it["name"] }}</b></td>
+
+                <td>
+                  <form method="post" action="{{ url_for('pos.cart_update_qty') }}" style="display:flex; gap:8px; align-items:center;">
+                    <input type="hidden" name="product_id" value="{{ it['product_id'] }}">
+                    <input name="qty" type="number" min="1" value="{{ it['qty'] }}" style="width:90px;">
+                    <button class="btn secondary" type="submit">OK</button>
+                  </form>
+                </td>
+
+                <td>{{ "%.2f"|format(it["unit_price"]) }}</td>
+                <td>{{ "%.2f"|format(it["subtotal"]) }}</td>
+
+                <td>
+                  <form method="post" action="{{ url_for('pos.cart_remove') }}">
+                    <input type="hidden" name="product_id" value="{{ it['product_id'] }}">
+                    <button class="btn secondary" type="submit">Quitar</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; margin-top: 10px;">
+        <div class="panel" style="min-width: 260px;">
+          <div class="label">Total</div>
+          <div class="value" style="font-size: 22px;">{{ "%.2f"|format(cart.get("total", 0)) }}</div>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:10px; margin-top: 12px; flex-wrap: wrap;">
+        <form method="post" action="{{ url_for('pos.cart_clear') }}">
+          <button class="btn secondary" type="submit">Vaciar carrito</button>
+        </form>
+
+        <form method="post" action="{{ url_for('pos.checkout') }}">
+          <button class="btn" type="submit" title="Descuenta stock, registra kardex y genera ticket">
+            Finalizar venta
+          </button>
+        </form>
+      </div>
+
+      <p class="muted" style="margin-top:10px;">
+        Nota: si te sale “Stock insuficiente”, primero transfiere desde Bodega a esta sucursal (Transferencias).
+      </p>
+    {% endif %}
+  </div>
+
+</div>
+
+<script>
+  // Mantener foco siempre en el input de escaneo
+  const scanInput = document.getElementById("scanInput");
+  if (scanInput) {
+    scanInput.focus();
+    document.addEventListener("click", () => scanInput.focus());
+  }
+
+  // --- Autocomplete de clientes (sin librerías) ---
+  const cs = document.getElementById("clientSearch");
+  const cr = document.getElementById("clientResults");
+  const cid = document.getElementById("clientId");
+  const cbtn = document.getElementById("clientBtn");
+
+  function escapeHtml(s) {
+    return (s || "").replace(/[&<>"']/g, (c) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[c]));
+  }
+
+  async function searchClients(q) {
+    const res = await fetch(`/clients/search?q=${encodeURIComponent(q)}`);
+    if (!res.ok) return [];
+    return await res.json();
+  }
+
+  function showResults(items) {
+    if (!cr) return;
+    if (!items.length) {
+      cr.style.display = "none";
+      cr.innerHTML = "";
+      return;
+    }
+
+    cr.style.display = "block";
+    cr.innerHTML = items.map(c => {
+      const line = `${escapeHtml(c.full_name)} <span class="muted">(${escapeHtml(c.client_type)} → ${escapeHtml(c.price_mode)})</span>`;
+      return `
+        <div class="row" style="display:flex; justify-content:space-between; align-items:center; padding:8px; border-bottom:1px solid #223354;">
+          <div>${line}</div>
+          <button type="button" class="btn secondary" data-id="${c.id}" data-name="${escapeHtml(c.full_name)}">Elegir</button>
+        </div>
+      `;
+    }).join("");
+  }
+
+  if (cs && cr && cid && cbtn) {
+    let t = null;
+
+    cs.addEventListener("input", () => {
+      const q = (cs.value || "").trim();
+      cid.value = "";
+      cbtn.disabled = true;
+
+      if (t) clearTimeout(t);
+      if (q.length < 2) {
+        showResults([]);
+        return;
+      }
+
+      t = setTimeout(async () => {
+        const items = await searchClients(q);
+        showResults(items);
+      }, 180);
+    });
+
+    cr.addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-id]");
+      if (!btn) return;
+
+      const id = btn.getAttribute("data-id");
+      const name = btn.getAttribute("data-name");
+
+      cid.value = id;
+      cs.value = name;
+      cbtn.disabled = false;
+
+      showResults([]);
+      cs.focus();
+    });
+  }
+</script>
+{% endblock %}

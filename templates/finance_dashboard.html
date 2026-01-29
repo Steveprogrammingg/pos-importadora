@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Finanzas</h1>
+
+<div class="grid">
+  <div class="panel">
+    <div class="label">Ventas (últimos 7 días)</div>
+    <div class="value" style="font-size:22px;">{{ "%.2f"|format(sales_total) }}</div>
+    <div class="muted">Desde {{ start7 }} hasta {{ today }}</div>
+  </div>
+
+  <div class="panel">
+    <div class="label">Gastos (últimos 7 días)</div>
+    <div class="value" style="font-size:22px;">{{ "%.2f"|format(expenses_total) }}</div>
+  </div>
+
+  <div class="panel">
+    <div class="label">Caja (últimos 7 días)</div>
+    <div class="muted">Ingresos: {{ "%.2f"|format(cash_in) }}</div>
+    <div class="muted">Egresos: {{ "%.2f"|format(cash_out) }}</div>
+  </div>
+</div>
+
+<div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+  <a class="btn" href="{{ url_for('finance.expenses_new_get') }}">Nuevo gasto</a>
+  <a class="btn secondary" href="{{ url_for('finance.expenses_list') }}">Ver gastos</a>
+  <a class="btn secondary" href="{{ url_for('finance.cash_dashboard') }}">Caja</a>
+</div>
+
+{% endblock %}

@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Ticket • Venta #{{ sale.id }}</h1>
+
+<!-- Estilo SOLO para impresión -->
+<style>
+  @media print {
+    .topbar, .footer, .alerts, .no-print { display: none !important; }
+    body { background: #fff !important; color: #000 !important; }
+    .card, .panel { box-shadow: none !important; border: 0 !important; background: #fff !important; }
+    .table th, .table td { border-color: #ccc !important; }
+  }
+</style>
+
+<div class="panel">
+
+  <div class="grid" style="grid-template-columns: repeat(3, 1fr);">
+    <div class="panel">
+      <div class="label">Empresa</div>
+      <div class="value">{{ company.name if company else sale.company_id }}</div>
+    </div>
+    <div class="panel">
+      <div class="label">Sucursal</div>
+      <div class="value">{{ branch.name if branch else sale.branch_id }}</div>
+    </div>
+    <div class="panel">
+      <div class="label">Fecha</div>
+      <div class="value">{{ sale.created_at.strftime("%Y-%m-%d %H:%M") }}</div>
+    </div>
+  </div>
+
+  <div class="grid" style="grid-template-columns: repeat(3, 1fr); margin-top:12px;">
+    <div class="panel">
+      <div class="label">Cliente</div>
+      <div class="value">
+        {% if client %}
+          {{ client.full_name }}
+        {% else %}
+          Consumidor final
+        {% endif %}
+      </div>
+      {% if client and (client.phone or client.email) %}
+        <div class="muted" style="margin-top:6px;">
+          {% if client.phone %}Tel: {{ client.phone }}{% endif %}
+          {% if client.email %}
+            {% if client.phone %} • {% endif %}
+            Email: {{ client.email }}
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="panel">
+      <div class="label">Tipo cliente</div>
+      <div class="value">
+        {% if client %}
+          {{ client.client_type }}
+        {% else %}
+          NORMAL
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="label">Tipo de precio</div>
+      <div class="value">{{ sale.price_mode }}</div>
+    </div>
+  </div>
+
+  <hr style="border:0; border-top:1px solid #223354; margin: 14px 0;">
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Producto</th>
+        <th style="width:120px;">Cant.</th>
+        <th style="width:140px;">P. Unit.</th>
+        <th style="width:140px;">Subtotal</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for it in sale.items %}
+      <tr>
+        <td>
+          <b>
+            {% if it.product %}
+              {{ it.product.name }}
+            {% else %}
+              Producto #{{ it.product_id }}
+            {% endif %}
+          </b>
+          <div class="muted" style="margin-top:4px;">
+            {% if it.product and it.product.sku %}SKU: {{ it.product.sku }}{% endif %}
+            {% if it.product and it.product.barcode %}
+              {% if it.product.sku %} • {% endif %}
+              Barcode: {{ it.product.barcode }}
+            {% endif %}
+          </div>
+        </td>
+        <td>{{ it.qty }}</td>
+        <td>{{ "%.2f"|format(it.unit_price) }}</td>
+        <td>{{ "%.2f"|format(it.subtotal) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div style="display:flex; justify-content:flex-end; margin-top: 12px;">
+    <div class="panel" style="min-width: 260px;">
+      <div class="label">Total</div>
+      <div class="value" style="font-size: 22px;">{{ "%.2f"|format(sale.total) }}</div>
+    </div>
+  </div>
+
+  <div class="no-print" style="display:flex; gap:10px; margin-top: 14px; flex-wrap: wrap;">
+    <a class="btn" href="{{ url_for('pos.sale') }}">Nueva venta</a>
+    <button class="btn secondary" type="button" onclick="window.print()">Imprimir</button>
+  </div>
+
+</div>
+{% endblock %}

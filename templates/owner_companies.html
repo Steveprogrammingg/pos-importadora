@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Owner • Empresas</h1>
+
+<div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom: 12px;">
+  <a class="btn" href="{{ url_for('owner.companies_new_get') }}">+ Nueva empresa</a>
+</div>
+
+<div class="panel">
+  {% if not companies %}
+    <p class="muted">No hay empresas.</p>
+  {% else %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Empresa</th>
+            <th>Estado</th>
+            <th style="width:240px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in companies %}
+          <tr>
+            <td><b>#{{ c.id }}</b></td>
+            <td>{{ c.name }}</td>
+            <td>
+              {% if c.is_active %}
+                <span class="muted">Activa ✅</span>
+              {% else %}
+                <span class="muted">Inactiva ⛔</span>
+              {% endif %}
+            </td>
+            <td style="text-align:right; display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;">
+              <a class="link" href="{{ url_for('owner.companies_edit_get', company_id=c.id) }}">Editar</a>
+
+              <form method="post" action="{{ url_for('owner.companies_toggle_active', company_id=c.id) }}">
+                <button class="btn secondary" type="submit">
+                  {% if c.is_active %}Desactivar{% else %}Activar{% endif %}
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+</div>
+
+{% endblock %}

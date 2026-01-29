@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Inventario • Transferencia</h1>
+
+<div class="panel">
+  <form method="post" action="{{ url_for('inventory.transfer_post') }}" class="form" style="max-width:520px;">
+    <label>Producto</label>
+    <select name="product_id" required>
+      {% for p in products %}
+        <option value="{{ p.id }}">{{ p.name }}{% if p.sku %} • SKU: {{ p.sku }}{% endif %}</option>
+      {% endfor %}
+    </select>
+
+    <label>Desde</label>
+    <select name="from_branch_id" required>
+      {% for b in branches %}
+        <option value="{{ b.id }}">
+          {% if b.is_warehouse %}🧺{% else %}🏪{% endif %} {{ b.name }}
+        </option>
+      {% endfor %}
+    </select>
+
+    <label>Hacia</label>
+    <select name="to_branch_id" required>
+      {% for b in branches %}
+        <option value="{{ b.id }}">
+          {% if b.is_warehouse %}🧺{% else %}🏪{% endif %} {{ b.name }}
+        </option>
+      {% endfor %}
+    </select>
+
+    <label>Cantidad</label>
+    <input name="qty" required placeholder="Ej: 5" />
+
+    <label>Nota (opcional)</label>
+    <input name="note" placeholder="Comentario" />
+
+    <button class="btn" type="submit">Transferir</button>
+  </form>
+
+  <p class="muted">Recomendación: Transfiere desde Bodega Central a la sucursal antes de vender.</p>
+</div>
+{% endblock %}

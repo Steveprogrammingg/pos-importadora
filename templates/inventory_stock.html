@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Inventario • Stock por sucursal</h1>
+
+<div class="panel">
+  <form method="get" action="{{ url_for('inventory_admin.stock_list') }}" class="form" style="max-width: 980px;">
+    <div class="grid" style="grid-template-columns: repeat(3, 1fr); gap: 12px;">
+
+      <div>
+        <label>Sucursal</label>
+
+        {% if role == "SELLER" %}
+          <select name="branch_id" disabled>
+            {% for b in branches %}
+              {% if b.id == selected_branch_id %}
+                <option value="{{ b.id }}" selected>{{ b.name }}</option>
+              {% endif %}
+            {% endfor %}
+          </select>
+          <input type="hidden" name="branch_id" value="{{ selected_branch_id }}">
+          <p class="muted" style="margin-top:6px;">Como vendedor solo ves tu sucursal.</p>
+        {% else %}
+          <select name="branch_id">
+            {% for b in branches %}
+              <option value="{{ b.id }}" {% if b.id == selected_branch_id %}selected{% endif %}>{{ b.name }}</option>
+            {% endfor %}
+          </select>
+        {% endif %}
+      </div>
+
+      <div>
+        <label>Buscar</label>
+        <input name="q" value="{{ q }}" placeholder="Nombre / SKU / Barcode">
+      </div>
+
+      <div style="display:flex; align-items:flex-end; gap:10px;">
+        <label style="display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" name="low" value="1" {% if only_low %}checked{% endif %}>
+          Solo sin stock
+        </label>
+      </div>
+
+    </div>
+
+    <div style="margin-top: 12px; display:flex; gap:10px; flex-wrap: wrap;">
+      <button class="btn" type="submit">Filtrar</button>
+
+      <!-- Atajos -->
+      <a class="btn secondary" href="{{ url_for('admin.products_list') }}">Administrar productos</a>
+      <a class="btn secondary" href="{{ url_for('main.dashboard') }}">Volver</a>
+    </div>
+  </form>
+</div>
+
+<div class="panel" style="margin-top: 12px;">
+  <h2 style="margin:0;">Stock en: {{ selected_branch.name if selected_branch else ("Sucursal #" ~ selected_branch_id) }}</h2>
+
+  {% if not rows %}
+    <p class="muted" style="margin-top:10px;">No hay productos.</p>
+  {% else %}
+    <div class="table-wrap">
+      <table class="table" style="margin-top: 10px;">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th style="width:140px; text-align:right;">Stock</th>
+            {% if role != "SELLER" %}
+              <th style="width:340px;">Ajuste (Admin/Owner)</th>
+            {% endif %}
+            <th style="width:140px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in rows %}
+          <tr>
+            <td>
+              <b>{{ r.name }}</b>
+              <div class="muted" style="margin-top:4px;">
+                {% if r.sku %}SKU: {{ r.sku }}{% endif %}
+                {% if r.barcode %}
+                  {% if r.sku %} • {% endif %}
+                  Barcode: {{ r.barcode }}
+                {% endif %}
+              </div>
+            </td>
+
+            <td style="text-align:right;">
+              <b>{{ "%.3f"|format(r.qty) }}</b>
+            </td>
+
+            {% if role != "SELLER" %}
+            <td>
+              <form method="post" action="{{ url_for('inventory_admin.stock_adjust_post') }}" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                <input type="hidden" name="branch_id" value="{{ selected_branch_id }}">
+                <input type="hidden" name="product_id" value="{{ r.product_id }}">
+
+                <input name="qty_delta" placeholder="+1 o -1" style="width:110px;">
+                <input name="note" placeholder="Nota (opcional)" style="min-width:180px; flex:1;">
+                <button class="btn secondary" type="submit">Aplicar</button>
+              </form>
+              <div class="muted" style="margin-top:6px;">Ej: +5 (ingreso), -2 (merma). No permite negativo.</div>
+            </td>
+            {% endif %}
+
+            <td style="text-align:right;">
+              <a class="link" href="{{ url_for('admin.products_edit_get', product_id=r.product_id) }}">Editar</a>
+            </td>
+
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <p class="muted" style="margin-top:10px;">Mostrando máximo 500 productos (offline-friendly).</p>
+  {% endif %}
+</div>
+
+{% endblock %}

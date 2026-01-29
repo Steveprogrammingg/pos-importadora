@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Nuevo Cliente</h1>
+
+<div class="panel">
+  <form method="post" action="{{ url_for('clients.new_post') }}" class="form" style="max-width: 420px;">
+    <label>Nombre completo</label>
+    <input name="full_name" required>
+
+    <label>Teléfono</label>
+    <input name="phone">
+
+    <label>Email</label>
+    <input name="email" type="email">
+
+    <label>Tipo de cliente</label>
+    <select name="client_type">
+      {% for t in client_types %}
+        <option value="{{ t }}">{{ t }}</option>
+      {% endfor %}
+    </select>
+
+    <div style="display:flex; gap:10px; margin-top:10px;">
+      <button class="btn" type="submit">Guardar</button>
+      <a class="btn secondary" href="{{ url_for('clients.list_clients') }}">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

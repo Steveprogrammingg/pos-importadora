@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Editar • Usuario</h1>
+
+<div class="panel">
+  <div class="grid" style="grid-template-columns: repeat(3, 1fr); gap:12px;">
+    <div class="panel">
+      <div class="label">Usuario</div>
+      <div class="value">{{ membership.user.full_name }}</div>
+      <div class="muted">ID: {{ membership.user.id }}</div>
+    </div>
+
+    <div class="panel">
+      <div class="label">Empresa</div>
+      <div class="value">{{ membership.company.name }}</div>
+      <div class="muted">Membresía: {{ membership.id }}</div>
+    </div>
+
+    <div class="panel">
+      <div class="label">Estado</div>
+      <div class="value">
+        {% if membership.is_active %}Activo ✅{% else %}Inactivo ⛔{% endif %}
+      </div>
+      <div class="muted">Acceso a empresa/sucursal</div>
+    </div>
+  </div>
+
+  <form method="post" action="{{ url_for('admin.users_edit_post', membership_id=membership.id) }}"
+        class="form" style="margin-top:12px; max-width: 820px;">
+
+    <div class="label">Datos</div>
+
+    <div class="grid" style="grid-template-columns: repeat(2, 1fr); gap:12px;">
+      <div>
+        <label>Nombre completo</label>
+        <input name="full_name" value="{{ membership.user.full_name }}" required autocomplete="off">
+      </div>
+      <div>
+        <label>Email</label>
+        <input name="email" value="{{ membership.user.email }}" required autocomplete="off">
+      </div>
+    </div>
+
+    <div>
+      <label>Nueva contraseña (opcional)</label>
+      <input name="password" type="password" placeholder="Deja en blanco para no cambiar">
+      <div class="muted" style="margin-top:6px;">Si escribes contraseña, se reemplaza.</div>
+    </div>
+
+    <hr style="border:0; border-top:1px solid #223354; margin: 12px 0;">
+
+    <div class="grid" style="grid-template-columns: repeat(2, 1fr); gap:12px;">
+      <div>
+        <label>Rol</label>
+        <select name="role" required onchange="onRoleChange(this.value)">
+          {% for r in ["OWNER","ADMIN","SELLER"] %}
+            <option value="{{ r }}" {% if membership.role == r %}selected{% endif %}>{{ r }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div id="branchBox">
+        <label>Sucursal (solo SELLER)</label>
+        <select name="branch_id" id="branchSelect">
+          <option value="">—</option>
+          {% for b in branches %}
+            <option value="{{ b.id }}" {% if membership.branch_id == b.id %}selected{% endif %}>
+              {{ b.name }}{% if b.is_warehouse %} (Bodega){% endif %}
+            </option>
+          {% endfor %}
+        </select>
+        <div class="muted" style="margin-top:6px;">
+          Si el rol es ADMIN/OWNER, queda “Global” (todas).
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;">
+      <button class="btn" type="submit">Guardar</button>
+      <a class="btn secondary" href="{{ url_for('admin.users_list') }}">Volver</a>
+    </div>
+  </form>
+
+  <hr style="border:0; border-top:1px solid #223354; margin: 16px 0;">
+
+  <div class="label">Activar / Desactivar acceso</div>
+  <div class="muted" style="margin-top:6px;">Esto desactiva solo el acceso a la empresa/sucursal (no borra historial).</div>
+
+  <form method="post" action="{{ url_for('admin.users_toggle_membership', membership_id=membership.id) }}" style="margin-top:10px;">
+    {% if membership.is_active %}
+      <button class="btn secondary" type="submit" onclick="return confirm('¿Desactivar este acceso?')">
+        Desactivar acceso
+      </button>
+    {% else %}
+      <button class="btn" type="submit" onclick="return confirm('¿Activar este acceso?')">
+        Activar acceso
+      </button>
+    {% endif %}
+  </form>
+</div>
+
+<script>
+  function onRoleChange(role){
+    const branchBox = document.getElementById("branchBox");
+    const branchSelect = document.getElementById("branchSelect");
+    if (!branchBox || !branchSelect) return;
+
+    if (role === "SELLER") {
+      branchBox.style.display = "";
+    } else {
+      branchSelect.value = "";
+      branchBox.style.display = "none";
+    }
+  }
+  onRoleChange("{{ membership.role }}");
+</script>
+
+{% endblock %}

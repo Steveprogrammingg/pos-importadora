@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Crear producto</h1>
+
+<div class="panel">
+  <div class="label">Nuevo producto</div>
+  <div class="muted" style="margin-top:6px;">
+    Este producto quedará disponible para todas las sucursales de la empresa.
+  </div>
+
+  <form method="post" action="{{ url_for('admin.products_new_post') }}" class="form" style="margin-top:12px;">
+
+    <!-- Datos básicos -->
+    <div>
+      <label>Nombre</label>
+      <input name="name" required placeholder="Pan de yema" autofocus />
+    </div>
+
+    <div class="grid" style="grid-template-columns: repeat(2, 1fr); gap:12px;">
+      <div>
+        <label>SKU</label>
+        <input name="sku" placeholder="SKU-001 (opcional)" />
+      </div>
+
+      <div>
+        <label>Barcode</label>
+        <input name="barcode" placeholder="EAN13 / código (opcional)" />
+      </div>
+    </div>
+
+    <hr style="border:0; border-top:1px solid #223354; margin: 10px 0;">
+
+    <!-- Precios -->
+    <div class="label">Precios</div>
+
+    <div class="grid" style="grid-template-columns: repeat(3, 1fr); gap:12px;">
+      <div>
+        <label>Minorista</label>
+        <input name="price_minorista" placeholder="0.00" inputmode="decimal" />
+      </div>
+
+      <div>
+        <label>Mayorista</label>
+        <input name="price_mayorista" placeholder="0.00" inputmode="decimal" />
+      </div>
+
+      <div>
+        <label>Especial</label>
+        <input name="price_especial" placeholder="0.00" inputmode="decimal" />
+      </div>
+    </div>
+
+    <div class="muted" style="margin-top:6px;">
+      Puedes dejar precios en 0.00 y editarlos luego.
+    </div>
+
+    <!-- Acciones -->
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+      <button class="btn" type="submit">Guardar producto</button>
+      <a class="btn secondary" href="{{ url_for('admin.products_list') }}">Cancelar</a>
+    </div>
+
+  </form>
+</div>
+{% endblock %}

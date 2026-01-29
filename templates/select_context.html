@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Selecciona Empresa / Sucursal</h1>
+
+{% if not companies %}
+  <p class="muted">No hay empresas disponibles para tu usuario.</p>
+{% else %}
+  <form method="post" action="{{ url_for('context.select_context_post') }}" class="form">
+    <label>Empresa</label>
+    <select name="company_id" id="companySelect" required>
+      <option value="">-- Selecciona --</option>
+      {% for c in companies %}
+        <option value="{{ c.company.id }}">{{ c.company.name }}</option>
+      {% endfor %}
+    </select>
+
+    <label>Sucursal</label>
+    <select name="branch_id" id="branchSelect" required disabled>
+      <option value="">-- Selecciona una empresa primero --</option>
+    </select>
+
+    <button type="submit" class="btn">Continuar</button>
+  </form>
+
+  <!-- Guardamos las sucursales en HTML (data-attributes), y JS solo filtra -->
+  <div id="branchesData" style="display:none;">
+    {% for c in companies %}
+      {% for b in c.company.branches %}
+        {% if b.is_active %}
+          <span
+            data-company-id="{{ c.company.id }}"
+            data-branch-id="{{ b.id }}"
+            data-branch-name="{{ b.name|e }}"
+            data-is-warehouse="{{ 1 if b.is_warehouse else 0 }}"
+          ></span>
+        {% endif %}
+      {% endfor %}
+    {% endfor %}
+  </div>
+
+  <script>
+    const companySelect = document.getElementById("companySelect");
+    const branchSelect = document.getElementById("branchSelect");
+
+    function loadBranches(companyId) {
+      const nodes = document.querySelectorAll(`#branchesData span[data-company-id="${companyId}"]`);
+      branchSelect.innerHTML = "";
+      branchSelect.disabled = false;
+
+      const first = document.createElement("option");
+      first.value = "";
+      first.textContent = "-- Selecciona --";
+      branchSelect.appendChild(first);
+
+      nodes.forEach(n => {
+        const id = n.dataset.branchId;
+        const name = n.dataset.branchName;
+        const isWarehouse = n.dataset.isWarehouse === "1";
+        const label = isWarehouse ? `${name} (Bodega)` : name;
+
+        const opt = document.createElement("option");
+        opt.value = id;
+        opt.textContent = label;
+        branchSelect.appendChild(opt);
+      });
+
+      if (nodes.length === 0) {
+        branchSelect.innerHTML = `<option value="">(Esta empresa no tiene sucursales activas)</option>`;
+        branchSelect.disabled = true;
+      }
+    }
+
+    companySelect.addEventListener("change", () => {
+      const companyId = companySelect.value;
+      if (!companyId) {
+        branchSelect.innerHTML = `<option value="">-- Selecciona una empresa primero --</option>`;
+        branchSelect.disabled = true;
+        return;
+      }
+      loadBranches(companyId);
+    });
+  </script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Reportes • Ventas</h1>
+
+<div class="panel">
+  <form method="get" action="{{ url_for('reports.sales_list') }}" class="form" style="max-width: 920px;">
+    <div class="grid" style="grid-template-columns: repeat(3, 1fr); gap: 12px;">
+
+      <div>
+        <label>Desde</label>
+        <input type="date" name="from" value="{{ date_from }}">
+      </div>
+
+      <div>
+        <label>Hasta</label>
+        <input type="date" name="to" value="{{ date_to }}">
+      </div>
+
+      <div>
+        <label>Sucursal</label>
+
+        {% if role == "SELLER" %}
+          <select name="branch_id" disabled>
+            {% for b in branches %}
+              {% if b.id == selected_branch_id %}
+                <option value="{{ b.id }}" selected>{{ b.name }}</option>
+              {% endif %}
+            {% endfor %}
+          </select>
+          <!-- mantener el valor real para el backend -->
+          <input type="hidden" name="branch_id" value="{{ selected_branch_id }}">
+          <p class="muted" style="margin-top:6px;">Como vendedor, solo puedes ver tu sucursal.</p>
+        {% else %}
+          <select name="branch_id">
+            <option value="0" {% if selected_branch_id == 0 %}selected{% endif %}>Todas las sucursales</option>
+            {% for b in branches %}
+              <option value="{{ b.id }}" {% if b.id == selected_branch_id %}selected{% endif %}>
+                {{ b.name }}
+              </option>
+            {% endfor %}
+          </select>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <div style="margin-top: 12px; display:flex; gap:10px; flex-wrap: wrap;">
+      <button class="btn" type="submit">Filtrar</button>
+      <a class="btn secondary" href="{{ url_for('main.dashboard') }}">Volver</a>
+    </div>
+  </form>
+</div>
+
+<div class="grid" style="margin-top: 12px;">
+  <div class="panel">
+    <div class="label">Ventas en el rango</div>
+    <div class="value" style="font-size:22px;">{{ total_count }}</div>
+  </div>
+  <div class="panel">
+    <div class="label">Total vendido</div>
+    <div class="value" style="font-size:22px;">{{ "%.2f"|format(total_amount) }}</div>
+  </div>
+  <div class="panel">
+    <div class="label">Notas</div>
+    <div class="muted" style="margin-top:6px;">
+      Mostrando máximo 200 registros (por rendimiento offline).
+    </div>
+  </div>
+</div>
+
+<div class="panel" style="margin-top: 12px;">
+  <h2 style="margin:0;">Listado</h2>
+
+  {% if not sales %}
+    <p class="muted" style="margin-top:10px;">No hay ventas en ese rango.</p>
+  {% else %}
+    <table class="table" style="margin-top: 10px;">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Fecha</th>
+          <th>Tipo</th>
+          <th style="text-align:right;">Total</th>
+          <th style="width:110px; text-align:right;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in sales %}
+        <tr>
+          <td><b>#{{ s.id }}</b></td>
+          <td>{{ s.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
+          <td>{{ s.price_mode }}</td>
+          <td style="text-align:right;">{{ "%.2f"|format(s.total) }}</td>
+          <td style="text-align:right;">
+            <a class="link" href="{{ url_for('pos.ticket', sale_id=s.id) }}">Ticket</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+</div>
+
+{% endblock %}
