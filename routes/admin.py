@@ -150,7 +150,7 @@ def users_new_post():
     else:
         user.full_name = full_name
 
-    membership_branch_id = branch_id_int if role == Role.SELLER else None
+    membership_branch_id = branch_id_int if role in (Role.SELLER, Role.SUPERVISOR) else None
 
     exists = (
         db.session.query(CompanyUser)
@@ -291,7 +291,7 @@ def users_edit_post(membership_id: int):
         m.user.set_password(password.strip())
 
     m.role = role
-    m.branch_id = branch_id_int if role == Role.SELLER else None
+    m.branch_id = branch_id_int if role in (Role.SELLER, Role.SUPERVISOR) else None
 
     db.session.commit()
     flash("Usuario actualizado.", "message")
