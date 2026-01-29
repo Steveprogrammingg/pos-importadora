@@ -6,7 +6,7 @@ from flask_login import login_required, current_user
 from sqlalchemy import func
 
 from models import db
-from models.sale import Sale
+from models.sale import Sale, SaleItem
 from models.branch import Branch
 from models.membership import CompanyUser, Role
 from routes.guards import require_context, require_roles
@@ -154,22 +154,36 @@ def sales_list():
     sales = base.order_by(Sale.created_at.desc()).limit(200).all()
 
     # Totales reales del rango (sin depender del limit)
-    agg = (
-        db.session.query(
-            func.count(Sale.id),
-            func.coalesce(func.sum(Sale.total), 0),
-        )
-        .filter(
-            Sale.company_id == company_id,
-            Sale.created_at >= date_from,
-            Sale.created_at < date_to_end,
-        )
+    # Totales del rango
+    agg_sales = db.session.query(
+        func.count(Sale.id),
+        func.coalesce(func.sum(Sale.total), 0),
+    ).filter(
+        Sale.company_id == company_id,
+        Sale.created_at >= date_from,
+        Sale.created_at < date_to_end,
     )
     if selected_branch_id is not None:
-        agg = agg.filter(Sale.branch_id == selected_branch_id)
+        agg_sales = agg_sales.filter(Sale.branch_id == selected_branch_id)
 
-    total_count, total_sum = agg.first()
+    total_count, total_sum = agg_sales.first()
     total_amount = Decimal(str(total_sum or 0)).quantize(Decimal("0.01"))
+
+    # Costo y ganancia (usa unit_cost fotografiado en SaleItem)
+    agg_profit = db.session.query(
+        func.coalesce(func.sum(SaleItem.unit_cost * SaleItem.qty), 0),
+        func.coalesce(func.sum((SaleItem.unit_price - SaleItem.unit_cost) * SaleItem.qty), 0),
+    ).join(Sale, Sale.id == SaleItem.sale_id).filter(
+        Sale.company_id == company_id,
+        Sale.created_at >= date_from,
+        Sale.created_at < date_to_end,
+    )
+    if selected_branch_id is not None:
+        agg_profit = agg_profit.filter(Sale.branch_id == selected_branch_id)
+
+    total_cost_sum, total_profit_sum = agg_profit.first()
+    total_cost = Decimal(str(total_cost_sum or 0)).quantize(Decimal("0.01"))
+    total_profit = Decimal(str(total_profit_sum or 0)).quantize(Decimal("0.01"))
 
     return render_template(
         "reports_sales.html",
@@ -180,5 +194,7 @@ def sales_list():
         date_from=date_from.strftime("%Y-%m-%d"),
         date_to=date_to.strftime("%Y-%m-%d"),
         total_amount=float(total_amount),
+        total_cost=float(total_cost),
+        total_profit=float(total_profit),
         total_count=int(total_count or 0),
     )

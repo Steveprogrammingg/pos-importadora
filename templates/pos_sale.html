@@ -150,7 +150,23 @@
           <tbody>
             {% for it in items %}
               <tr>
-                <td><b>{{ it["name"] }}</b></td>
+                <td>
+                  <div style="display:flex; gap:10px; align-items:center;">
+                    {% if it.get('image_path') %}
+                      <img
+                        src="{{ url_for('static', filename=it.get('image_path')) }}?v={{ it.get('image_v', 1) }}"
+                        alt="{{ it['name'] }}"
+                        style="width:42px; height:42px; object-fit:cover; border-radius:10px; border:1px solid rgba(255,255,255,0.08);"
+                      >
+                    {% else %}
+                      <div style="width:42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.08);" class="muted">IMG</div>
+                    {% endif %}
+
+                    <div>
+                      <b>{{ it["name"] }}</b>
+                    </div>
+                  </div>
+                </td>
 
                 <td>
                   <form method="post" action="{{ url_for('pos.cart_update_qty') }}" style="display:flex; gap:8px; align-items:center;">

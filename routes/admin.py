@@ -335,6 +335,7 @@ def products_new_post():
     sku = _clean_str(request.form.get("sku")) or None
     barcode = _clean_str(request.form.get("barcode")) or None
 
+    cost_price = _to_decimal(request.form.get("cost_price"))
     p1 = _to_decimal(request.form.get("price_minorista"))
     p2 = _to_decimal(request.form.get("price_mayorista"))
     p3 = _to_decimal(request.form.get("price_especial"))
@@ -356,6 +357,7 @@ def products_new_post():
         name=name,
         sku=sku,
         barcode=barcode,
+        cost_price=cost_price,
         price_minorista=p1,
         price_mayorista=p2,
         price_especial=p3,
@@ -405,6 +407,7 @@ def products_edit_post(product_id: int):
     sku = _clean_str(request.form.get("sku")) or None
     barcode = _clean_str(request.form.get("barcode")) or None
 
+    cost_price = _to_decimal(request.form.get("cost_price"))
     p1 = _to_decimal(request.form.get("price_minorista"))
     p2 = _to_decimal(request.form.get("price_mayorista"))
     p3 = _to_decimal(request.form.get("price_especial"))
@@ -444,10 +447,10 @@ def products_edit_post(product_id: int):
     product.name = name
     product.sku = sku
     product.barcode = barcode
+    product.cost_price = cost_price
     product.price_minorista = p1
     product.price_mayorista = p2
     product.price_especial = p3
-
     db.session.commit()
     flash("Producto actualizado.", "message")
     return redirect(url_for("admin.products_list"))

@@ -67,6 +67,7 @@
           <tr>
             <th style="width:90px;">Imagen</th>
             <th>Producto</th>
+            <th style="width:140px; text-align:right;">Costo</th>
             <th style="width:140px; text-align:right;">Minorista</th>
             <th style="width:140px; text-align:right;">Mayorista</th>
             <th style="width:140px; text-align:right;">Especial</th>
@@ -105,6 +106,7 @@
               <div class="muted" style="margin-top:4px;">ID: {{ p.id }}</div>
             </td>
 
+            <td style="text-align:right;">{{ "%.2f"|format(p.cost_price or 0) }}</td>
             <td style="text-align:right;">{{ "%.2f"|format(p.price_minorista or 0) }}</td>
             <td style="text-align:right;">{{ "%.2f"|format(p.price_mayorista or 0) }}</td>
             <td style="text-align:right;">{{ "%.2f"|format(p.price_especial or 0) }}</td>

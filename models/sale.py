@@ -54,6 +54,8 @@ class SaleItem(db.Model):
 
     qty = db.Column(db.Numeric(14, 3), nullable=False)
     unit_price = db.Column(db.Numeric(14, 2), nullable=False)
+    # Costo unitario “fotografiado” al momento de vender (para reportes de ganancia).
+    unit_cost = db.Column(db.Numeric(14, 2), nullable=False, default="0.00")
     discount = db.Column(db.Numeric(14, 2), nullable=False, default="0.00")
     subtotal = db.Column(db.Numeric(14, 2), nullable=False)
 

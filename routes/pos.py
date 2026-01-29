@@ -36,7 +36,8 @@ def _get_cart() -> dict:
             "price_mode": "minorista",  # minorista | mayorista | especial
             "client_id": None,
             "client_name": None,
-            "items": []  # {product_id, name, qty, unit_price, subtotal}
+            # items: {product_id, name, qty, unit_price, subtotal, image_path?, image_v?}
+            "items": []
         }
         session["pos_cart"] = cart
 
@@ -267,10 +268,23 @@ def cart_add():
     mode = cart.get("price_mode", "minorista")
     unit_price = float(_price_for_mode(product, mode))
 
+    # Cache-buster para imagen (si la imagen se actualiza, el navegador
+    # no se queda con la versión vieja).
+    image_v = 1
+    if getattr(product, "image_updated_at", None):
+        try:
+            image_v = int(product.image_updated_at.timestamp())
+        except Exception:
+            image_v = 1
+
     for it in cart["items"]:
         if int(it["product_id"]) == int(product.id):
             it["qty"] = int(it["qty"]) + 1
             it["unit_price"] = unit_price
+            # Si el producto tenía imagen y el carrito fue creado antes,
+            # rellenamos para evitar que salga sin foto.
+            it.setdefault("image_path", product.image_path)
+            it.setdefault("image_v", image_v)
             _recalc(cart)
             _save_cart(cart)
             return redirect(url_for("pos.sale"))
@@ -280,7 +294,9 @@ def cart_add():
         "name": product.name,
         "qty": 1,
         "unit_price": unit_price,
-        "subtotal": unit_price
+        "subtotal": unit_price,
+        "image_path": product.image_path,
+        "image_v": image_v,
     })
     _recalc(cart)
     _save_cart(cart)
@@ -394,6 +410,7 @@ def checkout():
                 product_id=product_id,
                 qty=qty,
                 unit_price=unit_price,
+                unit_cost=Decimal(str(getattr(p, "cost_price", 0) or 0)).quantize(Decimal("0.01")),
                 discount=Decimal("0.00"),
                 subtotal=subtotal,
             ))

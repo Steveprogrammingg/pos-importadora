@@ -61,6 +61,14 @@
     <div class="value" style="font-size:22px;">{{ "%.2f"|format(total_amount) }}</div>
   </div>
   <div class="panel">
+    <div class="label">Total costo</div>
+    <div class="value" style="font-size:22px;">{{ "%.2f"|format(total_cost or 0) }}</div>
+  </div>
+  <div class="panel">
+    <div class="label">Ganancia estimada</div>
+    <div class="value" style="font-size:22px;">{{ "%.2f"|format(total_profit or 0) }}</div>
+  </div>
+  <div class="panel">
     <div class="label">Notas</div>
     <div class="muted" style="margin-top:6px;">
       Mostrando máximo 200 registros (por rendimiento offline).

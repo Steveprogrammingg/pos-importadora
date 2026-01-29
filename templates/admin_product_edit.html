@@ -54,6 +54,18 @@
 
     <hr style="border:0; border-top:1px solid #223354; margin: 12px 0;">
 
+    <div class="label">Costo (para ganancia)</div>
+    <div>
+      <label>Precio de costo</label>
+      <input name="cost_price"
+             value="{{ '%.2f'|format(product.cost_price or 0) }}"
+             inputmode="decimal"
+             autocomplete="off">
+      <p class="muted" style="margin-top:6px;">Se usa para calcular la ganancia real en reportes. El costo de cada venta se “fotografía” al momento de vender.</p>
+    </div>
+
+    <hr style="border:0; border-top:1px solid #223354; margin: 12px 0;">
+
     <div class="label">Precios</div>
 
     <div class="grid" style="grid-template-columns: repeat(3, 1fr); gap: 12px;">
