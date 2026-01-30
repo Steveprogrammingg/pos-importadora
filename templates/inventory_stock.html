@@ -46,6 +46,7 @@
       <button class="btn" type="submit">Filtrar</button>
 
       <!-- Atajos -->
+      <a class="btn secondary" href="{{ url_for('inventory_admin.valuation_get') }}">Valorización (costo)</a>
       <a class="btn secondary" href="{{ url_for('admin.products_list') }}">Administrar productos</a>
       <a class="btn secondary" href="{{ url_for('main.dashboard') }}">Volver</a>
     </div>
@@ -94,11 +95,17 @@
                 <input type="hidden" name="branch_id" value="{{ selected_branch_id }}">
                 <input type="hidden" name="product_id" value="{{ r.product_id }}">
 
+                <select name="reason" style="width:140px;">
+                  <option value="ADJUST">Ajuste</option>
+                  <option value="SHRINKAGE">Merma</option>
+                  <option value="DAMAGE">Daño</option>
+                </select>
+
                 <input name="qty_delta" placeholder="+1 o -1" style="width:110px;">
                 <input name="note" placeholder="Nota (opcional)" style="min-width:180px; flex:1;">
                 <button class="btn secondary" type="submit">Aplicar</button>
               </form>
-              <div class="muted" style="margin-top:6px;">Ej: +5 (ingreso), -2 (merma). No permite negativo.</div>
+              <div class="muted" style="margin-top:6px;">Ej: +5 (ingreso), -2 (merma/daño). Si restas, el tipo Merma/Daño quedará registrado en Kardex.</div>
             </td>
             {% endif %}
 

@@ -14,7 +14,7 @@
 
 <div class="panel">
 
-  <div class="grid" style="grid-template-columns: repeat(3, 1fr);">
+  <div class="grid" style="grid-template-columns: repeat(4, 1fr);">
     <div class="panel">
       <div class="label">Empresa</div>
       <div class="value">{{ company.name if company else sale.company_id }}</div>
@@ -26,6 +26,10 @@
     <div class="panel">
       <div class="label">Fecha</div>
       <div class="value">{{ sale.created_at.strftime("%Y-%m-%d %H:%M") }}</div>
+    </div>
+    <div class="panel">
+      <div class="label">Método de pago</div>
+      <div class="value">{{ "Efectivo" if (sale.payment_method or "cash") == "cash" else "Transferencia" }}</div>
     </div>
   </div>
 

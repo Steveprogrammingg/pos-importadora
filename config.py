@@ -11,6 +11,9 @@ class Config:
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+    # Dashboard / Inventario
+    STOCK_LOW_THRESHOLD = int(os.environ.get("STOCK_LOW_THRESHOLD", "5"))
+
     # Cookies de sesión más seguras (ajusta en producción)
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"

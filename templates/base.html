@@ -38,7 +38,9 @@
           {% set system_role = session.get("system_role") %}
           {% set is_system_owner = (system_role == "OWNER") %}
 
+          {% if is_admin_like %}
           <a class="link" href="{{ url_for('main.dashboard') }}">Dashboard</a>
+          {% endif %}
 
           <span class="chip">Operación</span>
           <a class="link" href="{{ url_for('pos.sale') }}">POS</a>
@@ -49,6 +51,7 @@
 
             <span class="chip">Reportes</span>
             <a class="link" href="{{ url_for('reports.sales_list') }}">Ventas</a>
+            <a class="link" href="{{ url_for('reports.financial_report') }}">Financiero</a>
             <a class="link" href="{{ url_for('reports_top.top_products') }}">Top Productos</a>
 
             <span class="divider"></span>
@@ -73,11 +76,10 @@
             <a class="link" href="{{ url_for('admin.users_list') }}">Usuarios</a>
           {% endif %}
 
-          {# Vendedores también pueden registrar gastos/caja #}
+          {# Vendedores: solo gastos (sin Caja ni Dashboard) #}
           {% if is_seller %}
             <span class="divider"></span>
             <span class="chip">Finanzas</span>
-            <a class="link" href="{{ url_for('finance.cash_dashboard') }}">Caja</a>
             <a class="link" href="{{ url_for('finance.expenses_list') }}">Gastos</a>
             <a class="link" href="{{ url_for('finance.expenses_new_get') }}">Nuevo gasto</a>
           {% endif %}

@@ -6,6 +6,7 @@
   <div class="panel">
     <div class="label">Ventas (últimos 7 días)</div>
     <div class="value" style="font-size:22px;">{{ "%.2f"|format(sales_total) }}</div>
+    <div class="muted">Efectivo: {{ "%.2f"|format(sales_cash_total or 0) }} • Transferencias: {{ "%.2f"|format(sales_transfer_total or 0) }}</div>
     <div class="muted">Desde {{ start7 }} hasta {{ today }}</div>
   </div>
 

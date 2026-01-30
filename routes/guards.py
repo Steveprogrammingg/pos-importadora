@@ -127,7 +127,7 @@ def require_roles(*allowed_roles):
 
             if membership.role not in allowed_roles:
                 flash("No tienes permisos para acceder a esta sección.", "error")
-                return redirect(url_for("main.dashboard"))
+                return redirect(url_for("pos.sale"))
 
             return fn(*args, **kwargs)
 
@@ -149,7 +149,7 @@ def require_system_owner():
             )
             if not r or r.role != SystemRole.OWNER:
                 flash("No tienes permisos para acceder a esta sección.", "error")
-                return redirect(url_for("main.dashboard"))
+                return redirect(url_for("pos.sale"))
             return fn(*args, **kwargs)
 
         return wrapper

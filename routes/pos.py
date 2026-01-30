@@ -355,6 +355,10 @@ def checkout():
     price_mode = cart.get("price_mode", "minorista")
     client_id = cart.get("client_id")
 
+    payment_method = (request.form.get("payment_method") or "cash").strip().lower()
+    if payment_method not in ("cash", "transfer"):
+        payment_method = "cash"
+
     try:
         sale_total = Decimal(str(cart.get("total", 0))).quantize(Decimal("0.01"))
 
@@ -380,6 +384,7 @@ def checkout():
             subtotal=sale_total,
             discount_total=Decimal("0.00"),
             total=sale_total,
+            payment_method=payment_method,
         )
         db.session.add(sale)
         db.session.flush()

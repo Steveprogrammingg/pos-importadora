@@ -3,13 +3,7 @@
 <h1>Inventario • Transferencia</h1>
 
 <div class="panel">
-  <form method="post" action="{{ url_for('inventory.transfer_post') }}" class="form" style="max-width:520px;">
-    <label>Producto</label>
-    <select name="product_id" required>
-      {% for p in products %}
-        <option value="{{ p.id }}">{{ p.name }}{% if p.sku %} • SKU: {{ p.sku }}{% endif %}</option>
-      {% endfor %}
-    </select>
+  <form method="post" action="{{ url_for('inventory.transfer_post') }}" class="form" style="max-width:820px;">
 
     <label>Desde</label>
     <select name="from_branch_id" required>
@@ -29,15 +23,86 @@
       {% endfor %}
     </select>
 
-    <label>Cantidad</label>
-    <input name="qty" required placeholder="Ej: 5" />
+    <div class="divider"></div>
+
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+      <div>
+        <div class="muted" style="margin-bottom:6px;">Productos a transferir</div>
+        <div class="muted" style="font-size:12px;">Puedes agregar varios productos en una sola transferencia.</div>
+      </div>
+      <button class="btn" type="button" id="addRowBtn">+ Agregar producto</button>
+    </div>
+
+    <div class="card" style="margin-top:10px;">
+      <table class="table" id="itemsTable" style="width:100%">
+        <thead>
+          <tr>
+            <th style="width:65%">Producto</th>
+            <th style="width:20%">Cantidad</th>
+            <th style="width:15%"></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
 
     <label>Nota (opcional)</label>
     <input name="note" placeholder="Comentario" />
 
-    <button class="btn" type="submit">Transferir</button>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <button class="btn" name="action" value="draft" type="submit">Guardar borrador</button>
+      <button class="btn primary" name="action" value="confirm" type="submit">Confirmar y transferir</button>
+      <a class="btn" href="{{ url_for('inventory.transfer_history') }}">Historial</a>
+    </div>
   </form>
 
   <p class="muted">Recomendación: Transfiere desde Bodega Central a la sucursal antes de vender.</p>
 </div>
+
+<script>
+  const PRODUCTS = {{ products_json|tojson }};
+
+  function buildProductOptions(selectedId) {
+    return PRODUCTS.map(p => {
+      const label = `${p.name}${p.sku ? ' • SKU: ' + p.sku : ''}`;
+      const sel = (String(selectedId) === String(p.id)) ? 'selected' : '';
+      return `<option value="${p.id}" ${sel}>${label}</option>`;
+    }).join('');
+  }
+
+  function addRow(productId = null, qty = '') {
+    const tbody = document.querySelector('#itemsTable tbody');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>
+        <select name="product_id[]" required>${buildProductOptions(productId)}</select>
+      </td>
+      <td>
+        <input name="qty[]" required placeholder="Ej: 5" value="${qty}" />
+      </td>
+      <td style="text-align:right;">
+        <button class="btn danger" type="button" data-remove>Quitar</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+
+    tr.querySelector('[data-remove]').addEventListener('click', () => {
+      tr.remove();
+    });
+  }
+
+  document.getElementById('addRowBtn').addEventListener('click', () => addRow());
+
+  // Arranca con 1 fila por defecto
+  addRow();
+
+  // Validación mínima: al menos 1 item
+  document.querySelector('form').addEventListener('submit', (e) => {
+    const rows = document.querySelectorAll('#itemsTable tbody tr');
+    if (!rows.length) {
+      e.preventDefault();
+      alert('Agrega al menos un producto para transferir.');
+    }
+  });
+</script>
 {% endblock %}

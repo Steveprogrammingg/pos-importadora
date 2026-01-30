@@ -203,7 +203,14 @@
           <button class="btn secondary" type="submit">Vaciar carrito</button>
         </form>
 
-        <form method="post" action="{{ url_for('pos.checkout') }}">
+        <form method="post" action="{{ url_for('pos.checkout') }}" style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+          <div style="min-width:220px;">
+            <label style="display:block; font-size:12px; color:#666; margin-bottom:4px;">Método de pago</label>
+            <select name="payment_method" required>
+              <option value="cash">Efectivo</option>
+              <option value="transfer">Transferencia</option>
+            </select>
+          </div>
           <button class="btn" type="submit" title="Descuenta stock, registra kardex y genera ticket">
             Finalizar venta
           </button>
@@ -219,11 +226,40 @@
 </div>
 
 <script>
-  // Mantener foco siempre en el input de escaneo
+  // Mantener foco en el input de escaneo SOLO cuando el usuario no esté interactuando con otros campos.
   const scanInput = document.getElementById("scanInput");
+
+  function shouldKeepScanFocus(target) {
+    if (!scanInput) return false;
+
+    // Si el click fue en un elemento interactivo distinto al scanInput, NO robar foco.
+    const interactive = target.closest('input, textarea, select, button, a, [contenteditable="true"]');
+    if (interactive && interactive !== scanInput) return false;
+
+    // Si el usuario está escribiendo en otro input, NO robar foco.
+    const ae = document.activeElement;
+    if (ae && ae !== document.body && ae !== scanInput) {
+      const aeInteractive = ae.closest('input, textarea, select, [contenteditable="true"]');
+      if (aeInteractive) return false;
+    }
+
+    // Si el click fue dentro del panel de cliente (búsqueda / resultados), NO robar foco.
+    if (target.closest('#clientSearch') || target.closest('#clientResults')) return false;
+
+    return true;
+  }
+
   if (scanInput) {
+    // foco inicial
     scanInput.focus();
-    document.addEventListener("click", () => scanInput.focus());
+
+    // Re-enfocar al hacer click en el "fondo" o zonas no interactivas
+    document.addEventListener("click", (e) => {
+      if (shouldKeepScanFocus(e.target)) {
+        // pequeño delay para no interferir con clicks legítimos
+        setTimeout(() => scanInput.focus(), 0);
+      }
+    }, true);
   }
 
   // --- Autocomplete de clientes (sin librerías) ---

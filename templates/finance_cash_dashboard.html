@@ -2,18 +2,87 @@
 {% block content %}
 <h1>Caja</h1>
 
+<div class="panel" style="margin-bottom:12px;">
+  <div style="display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap;">
+    <div>
+      <div class="label">Fecha</div>
+      <div class="value" style="font-size:18px;">{{ d.strftime('%Y-%m-%d') }}</div>
+    </div>
+    <form method="get" action="{{ url_for('finance.cash_dashboard') }}" style="display:flex; gap:8px; align-items:end;">
+      <div>
+        <label style="display:block; font-size:12px; opacity:.8;">Cambiar día</label>
+        <input type="date" name="d" value="{{ d.strftime('%Y-%m-%d') }}" required>
+      </div>
+      <button class="btn" type="submit">Ver</button>
+    </form>
+  </div>
+</div>
+
 <div class="grid">
   <div class="panel">
-    <div class="label">Ingresos (del día)</div>
-    <div class="value" style="font-size:22px;">{{ "%.2f"|format(total_in) }}</div>
+    <div class="label">Apertura (monto inicial)</div>
+    <div class="value" style="font-size:22px;">{{ "%.2f"|format(opening_amount or 0) }}</div>
+    {% if not opening %}
+      <form class="form" method="post" action="{{ url_for('finance.cash_open_post') }}" style="margin-top:10px;">
+        <input type="hidden" name="move_date" value="{{ d.strftime('%Y-%m-%d') }}">
+        <div>
+          <label>Monto inicial</label>
+          <input type="number" name="opening_amount" step="0.01" min="0" required>
+        </div>
+        <button class="btn" type="submit">Abrir Caja</button>
+      </form>
+    {% else %}
+      <div style="margin-top:8px; font-size:12px; opacity:.8;">Registrada como movimiento <b>IN</b> (APERTURA).</div>
+    {% endif %}
   </div>
   <div class="panel">
-    <div class="label">Egresos (del día)</div>
-    <div class="value" style="font-size:22px;">{{ "%.2f"|format(total_out) }}</div>
+    <div class="label">Ventas (del día)</div>
+    <div class="value" style="font-size:22px;">{{ "%.2f"|format(sales_total or 0) }}</div>
+    <div style="margin-top:8px; display:flex; gap:12px; flex-wrap:wrap; font-size:13px;">
+      <span><b>Efectivo:</b> {{ "%.2f"|format(sales_cash or 0) }}</span>
+      <span><b>Transferencias:</b> {{ "%.2f"|format(sales_transfer or 0) }}</span>
+    </div>
   </div>
   <div class="panel">
-    <div class="label">Balance (del día)</div>
-    <div class="value" style="font-size:22px;">{{ "%.2f"|format(net) }}</div>
+    <div class="label">Movimientos manuales</div>
+    <div style="margin-top:6px; font-size:13px;">
+      <div><b>Ingresos:</b> {{ "%.2f"|format(total_in) }}</div>
+      <div><b>Egresos:</b> {{ "%.2f"|format(total_out) }}</div>
+      <div style="margin-top:4px;"><b>Neto:</b> {{ "%.2f"|format(net) }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="grid" style="margin-top:12px;">
+  <div class="panel">
+    <div class="label">Efectivo esperado</div>
+    <div class="value" style="font-size:22px;">{{ "%.2f"|format(expected_cash or 0) }}</div>
+    <div style="margin-top:8px; font-size:12px; opacity:.8;">
+      Cálculo: Apertura + Ventas(Efectivo) + Ingresos - Egresos
+    </div>
+  </div>
+  <div class="panel">
+    <div class="label">Efectivo contado</div>
+    <div class="value" style="font-size:22px;">{% if counted_amount is not none %}{{ "%.2f"|format(counted_amount) }}{% else %}-{% endif %}</div>
+    <form class="form" method="post" action="{{ url_for('finance.cash_count_post') }}" style="margin-top:10px;">
+      <input type="hidden" name="count_date" value="{{ d.strftime('%Y-%m-%d') }}">
+      <div>
+        <label>Actualizar conteo</label>
+        <input type="number" name="counted_amount" step="0.01" min="0" value="{% if counted_amount is not none %}{{ "%.2f"|format(counted_amount) }}{% endif %}" required>
+      </div>
+      <div>
+        <label>Nota (opcional)</label>
+        <input name="note" maxlength="255" value="{{ cash_count.note if cash_count else '' }}">
+      </div>
+      <button class="btn" type="submit">Guardar conteo</button>
+    </form>
+  </div>
+  <div class="panel">
+    <div class="label">Diferencia de caja</div>
+    <div class="value" style="font-size:22px;">{% if diff is not none %}{{ "%.2f"|format(diff) }}{% else %}-{% endif %}</div>
+    <div style="margin-top:8px; font-size:12px; opacity:.8;">
+      Diferencia = Contado - Esperado
+    </div>
   </div>
 </div>
 

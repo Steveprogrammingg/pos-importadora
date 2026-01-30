@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Inventario • Historial de transferencias</h1>
+
+<div class="panel">
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <a class="btn" href="{{ url_for('inventory.transfer_get') }}">Nueva transferencia</a>
+    <a class="btn secondary" href="{{ url_for('main.dashboard') }}">Volver</a>
+  </div>
+</div>
+
+<div class="panel" style="margin-top: 12px;">
+  {% if not transfers %}
+    <p class="muted">No hay transferencias registradas.</p>
+  {% else %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th style="width:120px;">#</th>
+            <th style="width:140px;">Estado</th>
+            <th>Origen → Destino</th>
+            <th>Producto</th>
+            <th style="width:120px; text-align:right;">Cantidad</th>
+            <th style="width:220px;">Fecha</th>
+            <th>Nota</th>
+            <th style="width:160px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for t in transfers %}
+          {% set from_b = branch_map.get(t.from_branch_id) %}
+          {% set to_b = branch_map.get(t.to_branch_id) %}
+          {% for it in t.items %}
+            {% set p = product_map.get(it.product_id) %}
+            <tr>
+              <td><b>#{{ t.id }}</b></td>
+              <td>
+                {% if t.status == 'CONFIRMED' %}
+                  <span class="chip">CONFIRMADA</span>
+                {% else %}
+                  <span class="chip">BORRADOR</span>
+                {% endif %}
+              </td>
+              <td>{{ from_b.name if from_b else ("#" ~ t.from_branch_id) }} → {{ to_b.name if to_b else ("#" ~ t.to_branch_id) }}</td>
+              <td>{{ p.name if p else ("Producto #" ~ it.product_id) }}</td>
+              <td style="text-align:right;">{{ "%.3f"|format(it.qty) }}</td>
+              <td>
+                {{ t.created_at.strftime('%Y-%m-%d %H:%M') }}
+                {% if t.confirmed_at %}
+                  <div class="muted" style="font-size:12px;">Confirmada: {{ t.confirmed_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                {% endif %}
+              </td>
+              <td>{{ t.note or '' }}</td>
+              <td style="text-align:right;">
+                {% if t.status != 'CONFIRMED' %}
+                  <form method="post" action="{{ url_for('inventory.transfer_confirm', transfer_id=t.id) }}" style="display:inline;" onsubmit="return confirm('¿Confirmar esta transferencia? Esto afectará inventario y kardex.');">
+                    <button class="btn primary" type="submit">Confirmar</button>
+                  </form>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="muted" style="margin-top:10px;">Mostrando las últimas 200 transferencias.</p>
+  {% endif %}
+</div>
+
+{% endblock %}

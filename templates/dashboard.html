@@ -22,26 +22,112 @@
 <div class="grid" style="margin-top: 12px;">
   <div class="panel">
     <div class="label">Ventas (Hoy)</div>
-    <div class="value" style="font-size: 22px;">
-      {{ "%.2f"|format(stats.today_total if stats else 0) }}
+    <div class="value" style="font-size: 22px;" id="d-today-total">
+      {{ "%.2f"|format(stats.today.total if stats else 0) }}
     </div>
-    <div class="muted">{{ stats.today_count if stats else 0 }} ventas</div>
+    <div class="muted"><span id="d-today-count">{{ stats.today.count if stats else 0 }}</span> ventas • <span id="d-now">{{ stats.now_iso if stats else "" }}</span></div>
   </div>
 
   <div class="panel">
-    <div class="label">Gastos (Hoy)</div>
-    <div class="value" style="font-size: 22px;">
-      {{ "%.2f"|format(stats.today_expenses if stats else 0) }}
+    <div class="label">Efectivo (Hoy)</div>
+    <div class="value" style="font-size: 22px;" id="d-today-cash">
+      {{ "%.2f"|format(stats.today.cash if stats else 0) }}
     </div>
-    <div class="muted">Balance hoy: {{ "%.2f"|format(stats.today_net if stats else 0) }}</div>
+    <div class="muted">Transferencias: <span id="d-today-transfer">{{ "%.2f"|format(stats.today.transfer if stats else 0) }}</span></div>
   </div>
 
   <div class="panel">
-    <div class="label">Ventas (Últimos 7 días)</div>
-    <div class="value" style="font-size: 22px;">
-      {{ "%.2f"|format(stats.last7_total if stats else 0) }}
+    <div class="label">Ganancia (Hoy)</div>
+    <div class="value" style="font-size: 22px;" id="d-today-profit">
+      {{ "%.2f"|format(stats.today.gross_profit if stats else 0) }}
     </div>
-    <div class="muted">{{ stats.last7_count if stats else 0 }} ventas</div>
+    <div class="muted">Gastos: <span id="d-today-expenses">{{ "%.2f"|format(stats.today.expenses if stats else 0) }}</span> • Balance: <span id="d-today-net">{{ "%.2f"|format(stats.today.net if stats else 0) }}</span></div>
+  </div>
+</div>
+
+<div class="grid" style="margin-top: 12px;">
+  <div class="panel">
+    <div class="label">Ventas (Mes)</div>
+    <div class="value" style="font-size: 22px;" id="d-month-total">
+      {{ "%.2f"|format(stats.month.total if stats else 0) }}
+    </div>
+    <div class="muted"><span id="d-month-count">{{ stats.month.count if stats else 0 }}</span> ventas</div>
+  </div>
+
+  <div class="panel">
+    <div class="label">Ganancia (Mes)</div>
+    <div class="value" style="font-size: 22px;" id="d-month-profit">
+      {{ "%.2f"|format(stats.month.gross_profit if stats else 0) }}
+    </div>
+    <div class="muted">Gastos: <span id="d-month-expenses">{{ "%.2f"|format(stats.month.expenses if stats else 0) }}</span></div>
+  </div>
+
+  <div class="panel">
+    <div class="label">Balance (Mes)</div>
+    <div class="value" style="font-size: 22px;" id="d-month-net">
+      {{ "%.2f"|format(stats.month.net if stats else 0) }}
+    </div>
+    <div class="muted">Efectivo: <span id="d-month-cash">{{ "%.2f"|format(stats.month.cash if stats else 0) }}</span> • Transfer: <span id="d-month-transfer">{{ "%.2f"|format(stats.month.transfer if stats else 0) }}</span></div>
+  </div>
+</div>
+
+<div class="grid" style="margin-top: 12px;">
+  <div class="panel">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+      <h2 style="margin:0;">Top productos (Mes)</h2>
+      <a class="link" href="{{ url_for('reports_top.top_products') }}">Ver reporte</a>
+    </div>
+
+    <div id="d-top-products" style="margin-top: 10px; display:flex; flex-direction:column; gap:10px;">
+      {% if stats and stats.top_products %}
+        {% for p in stats.top_products %}
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:42px; height:42px; border-radius:10px; overflow:hidden; background:#f1f3f5; display:flex; align-items:center; justify-content:center;">
+              {% if p.image_url %}
+                <img src="{{ p.image_url }}" alt="{{ p.name }}" style="width:42px; height:42px; object-fit:cover;">
+              {% else %}
+                <span class="muted" style="font-size:12px;">IMG</span>
+              {% endif %}
+            </div>
+            <div style="flex:1;">
+              <div style="font-weight:700;">{{ p.name }}</div>
+              <div class="muted">{{ "%.3f"|format(p.qty_sold) }} uds • {{ "%.2f"|format(p.amount) }}</div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="muted">Aún no hay ventas este mes.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="panel">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+      <h2 style="margin:0;">Stock bajo</h2>
+      <a class="link" href="{{ url_for('inventory_admin.stock_list') }}">Ver inventario</a>
+    </div>
+
+    <div id="d-low-stock" style="margin-top: 10px; display:flex; flex-direction:column; gap:10px;">
+      {% if stats and stats.low_stock %}
+        {% for p in stats.low_stock %}
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:42px; height:42px; border-radius:10px; overflow:hidden; background:#f1f3f5; display:flex; align-items:center; justify-content:center;">
+              {% if p.image_url %}
+                <img src="{{ p.image_url }}" alt="{{ p.name }}" style="width:42px; height:42px; object-fit:cover;">
+              {% else %}
+                <span class="muted" style="font-size:12px;">IMG</span>
+              {% endif %}
+            </div>
+            <div style="flex:1;">
+              <div style="font-weight:700;">{{ p.name }}</div>
+              <div class="muted">Stock: {{ "%.3f"|format(p.qty) }}</div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="muted">No hay alertas de stock bajo.</p>
+      {% endif %}
+    </div>
   </div>
 </div>
 
@@ -70,6 +156,7 @@
             <th>ID</th>
             <th>Fecha</th>
             <th>Total</th>
+            <th>Método</th>
             <th>Tipo precio</th>
             <th></th>
           </tr>
@@ -80,6 +167,7 @@
             <td><b>#{{ s.id }}</b></td>
             <td>{{ s.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
             <td>{{ "%.2f"|format(s.total) }}</td>
+            <td>{{ "Efectivo" if s.payment_method == "cash" else "Transferencia" }}</td>
             <td>{{ s.price_mode }}</td>
             <td style="text-align:right;">
               <a class="link" href="{{ url_for('pos.ticket', sale_id=s.id) }}">Ticket</a>
@@ -93,5 +181,82 @@
     <p class="muted" style="margin-top: 10px;">Aún no hay ventas registradas en esta sucursal.</p>
   {% endif %}
 </div>
+
+<script>
+(function(){
+  const fmt2 = (n) => (Number(n || 0)).toFixed(2);
+  const fmt3 = (n) => (Number(n || 0)).toFixed(3);
+
+  async function refresh(){
+    try{
+      const res = await fetch("{{ url_for('main.dashboard_stats') }}", {headers: {"X-Requested-With":"fetch"}});
+      if(!res.ok) return;
+      const d = await res.json();
+
+      // Today
+      document.getElementById("d-today-total").textContent = fmt2(d.today.total);
+      document.getElementById("d-today-count").textContent = d.today.count || 0;
+      document.getElementById("d-today-cash").textContent = fmt2(d.today.cash);
+      document.getElementById("d-today-transfer").textContent = fmt2(d.today.transfer);
+      document.getElementById("d-today-profit").textContent = fmt2(d.today.gross_profit);
+      document.getElementById("d-today-expenses").textContent = fmt2(d.today.expenses);
+      document.getElementById("d-today-net").textContent = fmt2(d.today.net);
+
+      // Month
+      document.getElementById("d-month-total").textContent = fmt2(d.month.total);
+      document.getElementById("d-month-count").textContent = d.month.count || 0;
+      document.getElementById("d-month-profit").textContent = fmt2(d.month.gross_profit);
+      document.getElementById("d-month-expenses").textContent = fmt2(d.month.expenses);
+      document.getElementById("d-month-net").textContent = fmt2(d.month.net);
+      document.getElementById("d-month-cash").textContent = fmt2(d.month.cash);
+      document.getElementById("d-month-transfer").textContent = fmt2(d.month.transfer);
+
+      document.getElementById("d-now").textContent = d.now_iso || "";
+
+      // Top products
+      const topWrap = document.getElementById("d-top-products");
+      if(d.top_products && d.top_products.length){
+        topWrap.innerHTML = d.top_products.map(p => `
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:42px; height:42px; border-radius:10px; overflow:hidden; background:#f1f3f5; display:flex; align-items:center; justify-content:center;">
+              ${p.image_url ? `<img src="${p.image_url}" alt="${p.name}" style="width:42px; height:42px; object-fit:cover;">` : `<span class="muted" style="font-size:12px;">IMG</span>`}
+            </div>
+            <div style="flex:1;">
+              <div style="font-weight:700;">${p.name}</div>
+              <div class="muted">${fmt3(p.qty_sold)} uds • ${fmt2(p.amount)}</div>
+            </div>
+          </div>
+        `).join("");
+      } else {
+        topWrap.innerHTML = `<p class="muted">Aún no hay ventas este mes.</p>`;
+      }
+
+      // Low stock
+      const lowWrap = document.getElementById("d-low-stock");
+      if(d.low_stock && d.low_stock.length){
+        lowWrap.innerHTML = d.low_stock.map(p => `
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:42px; height:42px; border-radius:10px; overflow:hidden; background:#f1f3f5; display:flex; align-items:center; justify-content:center;">
+              ${p.image_url ? `<img src="${p.image_url}" alt="${p.name}" style="width:42px; height:42px; object-fit:cover;">` : `<span class="muted" style="font-size:12px;">IMG</span>`}
+            </div>
+            <div style="flex:1;">
+              <div style="font-weight:700;">${p.name}</div>
+              <div class="muted">Stock: ${fmt3(p.qty)}</div>
+            </div>
+          </div>
+        `).join("");
+      } else {
+        lowWrap.innerHTML = `<p class="muted">No hay alertas de stock bajo.</p>`;
+      }
+
+    }catch(e){
+      // silent
+    }
+  }
+
+  refresh();
+  setInterval(refresh, 5000);
+})();
+</script>
 
 {% endblock %}

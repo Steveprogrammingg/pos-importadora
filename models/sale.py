@@ -19,6 +19,9 @@ class Sale(db.Model):
     # price_mode usado en la venta: minorista/mayorista/especial
     price_mode = db.Column(db.String(20), nullable=False, default="minorista")
 
+    # Método de pago usado en la venta: cash/transfer
+    payment_method = db.Column(db.String(20), nullable=False, default="cash")
+
     subtotal = db.Column(db.Numeric(14, 2), nullable=False, default="0.00")
     discount_total = db.Column(db.Numeric(14, 2), nullable=False, default="0.00")
     total = db.Column(db.Numeric(14, 2), nullable=False, default="0.00")

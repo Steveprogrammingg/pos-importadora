@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Reportes • Financiero</h1>
+
+<div class="panel">
+  <form method="get" class="form" style="display:flex; gap:12px; flex-wrap:wrap; align-items:end;">
+    <div>
+      <label>Desde</label>
+      <input type="date" name="from" value="{{ date_from }}" />
+    </div>
+    <div>
+      <label>Hasta</label>
+      <input type="date" name="to" value="{{ date_to }}" />
+    </div>
+
+    {% if role != 'SELLER' %}
+    <div>
+      <label>Sucursal</label>
+      <select name="branch_id">
+        <option value="all" {% if selected_branch_id == 0 %}selected{% endif %}>Todas</option>
+        {% for b in branches %}
+          <option value="{{ b.id }}" {% if b.id == selected_branch_id %}selected{% endif %}>{{ b.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
+
+    <div>
+      <label>Método de pago</label>
+      <select name="payment_method">
+        <option value="all" {% if payment_method == 'all' %}selected{% endif %}>Todos</option>
+        <option value="cash" {% if payment_method == 'cash' %}selected{% endif %}>Efectivo</option>
+        <option value="transfer" {% if payment_method == 'transfer' %}selected{% endif %}>Transferencia</option>
+      </select>
+    </div>
+
+    <button class="btn" type="submit">Aplicar</button>
+    <a class="btn secondary" href="{{ url_for('reports.sales_list') }}">Ver ventas</a>
+  </form>
+</div>
+
+<div class="panel" style="margin-top:12px;">
+  <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px;">
+    <div class="card">
+      <div class="muted">Ventas</div>
+      <div style="font-size:26px;"><b>${{ '%.2f'|format(total_amount) }}</b></div>
+      <div class="muted"># ventas: {{ total_count }}</div>
+    </div>
+
+    <div class="card">
+      <div class="muted">Métodos</div>
+      <div><b>Efectivo:</b> ${{ '%.2f'|format(total_cash) }}</div>
+      <div><b>Transferencias:</b> ${{ '%.2f'|format(total_transfer) }}</div>
+    </div>
+
+    <div class="card">
+      <div class="muted">Costos</div>
+      <div style="font-size:22px;"><b>${{ '%.2f'|format(total_cost) }}</b></div>
+      <div class="muted">Costo total de lo vendido</div>
+    </div>
+
+    <div class="card">
+      <div class="muted">Ganancia bruta</div>
+      <div style="font-size:22px;"><b>${{ '%.2f'|format(gross_profit) }}</b></div>
+      <div class="muted">(Precio - costo) - descuentos</div>
+    </div>
+
+    <div class="card">
+      <div class="muted">Gastos</div>
+      <div style="font-size:22px;"><b>${{ '%.2f'|format(total_expenses) }}</b></div>
+      <div class="muted">Registrados en el rango</div>
+    </div>
+
+    <div class="card">
+      <div class="muted">Ganancia neta</div>
+      <div style="font-size:26px;"><b>${{ '%.2f'|format(net_profit) }}</b></div>
+      <div class="muted">Bruta - gastos</div>
+    </div>
+  </div>
+</div>
+
+<div class="panel" style="margin-top:12px;">
+  <h2 style="margin-top:0;">Detalle de ventas</h2>
+  {% if not sales %}
+    <p class="muted">No hay ventas para el filtro actual.</p>
+  {% else %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Fecha</th>
+            <th>Cliente</th>
+            <th>Método</th>
+            <th style="text-align:right;">Total</th>
+            <th style="text-align:right;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in sales %}
+            <tr>
+              <td><b>#{{ s.id }}</b></td>
+              <td>{{ s.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+              <td>{{ s.client.name if s.client else 'Consumidor final' }}</td>
+              <td>{% if s.payment_method == 'cash' %}Efectivo{% else %}Transferencia{% endif %}</td>
+              <td style="text-align:right;">${{ '%.2f'|format(s.total) }}</td>
+              <td style="text-align:right;">
+                <a class="btn" href="{{ url_for('pos.ticket', sale_id=s.id) }}">Ticket</a>
+                {% if role != 'SELLER' %}
+                  <a class="btn" href="{{ url_for('reports.sale_edit_view', sale_id=s.id) }}">Editar</a>
+                  <form method="post" action="{{ url_for('reports.sale_delete', sale_id=s.id) }}" style="display:inline;" onsubmit="return confirm('¿Eliminar esta venta? Esto devolverá stock y registrará kardex.');">
+                    <button class="btn danger" type="submit">Eliminar</button>
+                  </form>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="muted" style="margin-top:10px;">Mostrando hasta 200 ventas (los totales se calculan con TODAS las ventas del rango).</p>
+  {% endif %}
+</div>
+
+{% endblock %}

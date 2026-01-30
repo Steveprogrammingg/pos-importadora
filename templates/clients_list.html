@@ -9,7 +9,7 @@
     <div style="display:flex; gap:10px;">
       <button class="btn" type="submit">Buscar</button>
       <a class="btn secondary" href="{{ url_for('clients.new_get') }}">Nuevo cliente</a>
-      <a class="btn secondary" href="{{ url_for('main.dashboard') }}">Volver</a>
+      <a class="btn secondary" href="{{ url_for('pos.sale') }}">Volver</a>
     </div>
   </form>
 </div>
@@ -25,6 +25,8 @@
           <th>Tipo</th>
           <th>Teléfono</th>
           <th>Email</th>
+          <th>ID</th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -34,6 +36,15 @@
           <td>{{ c.client_type }}</td>
           <td>{{ c.phone or "-" }}</td>
           <td>{{ c.email or "-" }}</td>
+          <td>
+            {% if c.identification_type and c.identification_number %}
+              <span class="chip">{{ c.identification_type }}</span>
+              <span class="muted">{{ c.identification_number }}</span>
+            {% else %}-{% endif %}
+          </td>
+          <td>
+            <a class="btn small" href="{{ url_for('clients.edit_get', client_id=c.id) }}">Editar</a>
+          </td>
         </tr>
         {% endfor %}
       </tbody>

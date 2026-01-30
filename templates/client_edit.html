@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Editar Cliente</h1>
+
+<div class="panel">
+  <form method="post" action="{{ url_for('clients.edit_post', client_id=client.id) }}" class="form" style="max-width: 520px;">
+    <label>Nombre completo</label>
+    <input name="full_name" required value="{{ client.full_name }}">
+
+    <label>Tipo de identificación</label>
+    <select name="identification_type">
+      <option value="">— Seleccionar —</option>
+      {% for t in id_types %}
+        <option value="{{ t }}" {% if client.identification_type == t %}selected{% endif %}>{{ t }}</option>
+      {% endfor %}
+    </select>
+
+    <label>Número de identificación</label>
+    <input name="identification_number" value="{{ client.identification_number or '' }}" placeholder="Cédula / RUC / Pasaporte">
+
+    <label>Teléfono</label>
+    <input name="phone" value="{{ client.phone or '' }}">
+
+    <label>Email</label>
+    <input name="email" type="email" value="{{ client.email or '' }}">
+
+    <label>Tipo de cliente</label>
+    <select name="client_type">
+      {% for t in client_types %}
+        <option value="{{ t }}" {% if client.client_type == t %}selected{% endif %}>{{ t }}</option>
+      {% endfor %}
+    </select>
+
+    <div style="display:flex; gap:10px; margin-top:10px; flex-wrap: wrap;">
+      <button class="btn" type="submit">Guardar cambios</button>
+      <a class="btn secondary" href="{{ url_for('clients.list_clients') }}">Cancelar</a>
+    </div>
+  </form>
+
+  {% set role = session.get("role") %}
+  {% if role in ["ADMIN", "OWNER"] %}
+    <div style="margin-top:14px;">
+      <form method="post" action="{{ url_for('clients.delete_post', client_id=client.id) }}" onsubmit="return confirm('¿Eliminar cliente?');">
+        <button class="btn danger" type="submit">Eliminar cliente</button>
+      </form>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

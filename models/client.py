@@ -2,6 +2,15 @@ from datetime import datetime
 from . import db
 
 
+
+class IdentificationType:
+    CEDULA = "CEDULA"
+    RUC = "RUC"
+    PASAPORTE = "PASAPORTE"
+
+    ALL = {CEDULA, RUC, PASAPORTE}
+
+
 class ClientType:
     NORMAL = "NORMAL"
     MAYORISTA = "MAYORISTA"
@@ -17,6 +26,9 @@ class Client(db.Model):
 
     company_id = db.Column(db.Integer, db.ForeignKey("companies.id"), nullable=False)
 
+    identification_type = db.Column(db.String(20), nullable=True)
+    identification_number = db.Column(db.String(32), nullable=True)
+
     full_name = db.Column(db.String(160), nullable=False)
     phone = db.Column(db.String(40), nullable=True)
     email = db.Column(db.String(180), nullable=True)
@@ -28,6 +40,7 @@ class Client(db.Model):
 
     __table_args__ = (
         db.Index("ix_clients_company_name", "company_id", "full_name"),
+        db.Index("ix_clients_company_idnum", "company_id", "identification_number"),
     )
 
     @property

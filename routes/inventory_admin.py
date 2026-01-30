@@ -165,6 +165,7 @@ def stock_adjust_post():
     product_id = _to_int(request.form.get("product_id"), 0)
 
     qty_delta = _to_decimal_qty(request.form.get("qty_delta"))
+    reason = _clean_str(request.form.get("reason")) or "ADJUST"
     note = _clean_str(request.form.get("note")) or "Ajuste manual"
 
     if product_id <= 0:
@@ -212,11 +213,21 @@ def stock_adjust_post():
 
     inv.qty = new_qty
 
-    # Kardex: ADJUST
+    # Determinar tipo de movimiento en Kardex
+    move_type = KardexMoveType.ADJUST
+    if qty_delta < 0:
+        if reason == "SHRINKAGE":
+            move_type = KardexMoveType.SHRINKAGE
+        elif reason == "DAMAGE":
+            move_type = KardexMoveType.DAMAGE
+        else:
+            move_type = KardexMoveType.ADJUST
+
+    # Kardex
     km = KardexMovement(
         company_id=company_id,
         product_id=product_id,
-        move_type=KardexMoveType.ADJUST,
+        move_type=move_type,
         from_location_type=None if qty_delta > 0 else LocationType.BRANCH,
         from_location_id=None if qty_delta > 0 else branch_id,
         to_location_type=LocationType.BRANCH if qty_delta > 0 else None,
@@ -231,3 +242,79 @@ def stock_adjust_post():
     db.session.commit()
     flash("Stock ajustado correctamente.", "message")
     return redirect(url_for("inventory_admin.stock_list", branch_id=branch_id))
+
+
+# -------------------------
+# Reporte de inventario valorizado (ADMIN/OWNER)
+# -------------------------
+@inventory_admin_bp.get("/valuation")
+@login_required
+@require_context()
+@require_roles(Role.ADMIN, Role.OWNER)
+def valuation_get():
+    company_id = _company_id()
+
+    # Selección de sucursal (o todas)
+    branch_id = _to_int(request.args.get("branch_id"), 0)
+
+    branches = (
+        db.session.query(Branch)
+        .filter(Branch.company_id == company_id, Branch.is_active == True)
+        .order_by(Branch.name.asc())
+        .all()
+    )
+
+    # Query base de inventario
+    q = (
+        db.session.query(
+            Product.id.label("product_id"),
+            Product.name.label("name"),
+            Product.sku.label("sku"),
+            Product.barcode.label("barcode"),
+            Product.image_path.label("image_path"),
+            Product.cost_price.label("cost_price"),
+            func.coalesce(func.sum(Inventory.qty), 0).label("qty"),
+        )
+        .join(Inventory, (Inventory.product_id == Product.id) & (Inventory.company_id == company_id))
+        .filter(Product.company_id == company_id, Product.is_active == True)
+    )
+
+    if branch_id and branch_id > 0:
+        q = q.filter(Inventory.location_id == branch_id)
+    else:
+        # todas las ubicaciones de la empresa
+        q = q.filter(Inventory.company_id == company_id)
+
+    q = q.group_by(Product.id).order_by(Product.name.asc())
+
+    rows = q.all()
+
+    # Totales valorizados
+    total_qty = Decimal("0.000")
+    total_value = Decimal("0.00")
+    out = []
+    for r in rows:
+        qty = Decimal(str(r.qty or 0))
+        cost = Decimal(str(r.cost_price or 0)).quantize(Decimal("0.01"))
+        value = (qty * cost).quantize(Decimal("0.01"))
+        total_qty += qty
+        total_value += value
+        out.append({
+            "product_id": r.product_id,
+            "name": r.name,
+            "sku": r.sku,
+            "barcode": r.barcode,
+            "image_path": r.image_path,
+            "qty": qty,
+            "cost": cost,
+            "value": value,
+        })
+
+    return render_template(
+        "inventory_valuation.html",
+        branches=branches,
+        selected_branch_id=branch_id,
+        rows=out,
+        total_qty=total_qty,
+        total_value=total_value,
+    )

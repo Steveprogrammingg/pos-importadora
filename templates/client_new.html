@@ -7,6 +7,17 @@
     <label>Nombre completo</label>
     <input name="full_name" required>
 
+    <label>Tipo de identificación</label>
+    <select name="identification_type">
+      <option value="">— Seleccionar —</option>
+      {% for t in id_types %}
+        <option value="{{ t }}">{{ t }}</option>
+      {% endfor %}
+    </select>
+
+    <label>Número de identificación</label>
+    <input name="identification_number" placeholder="Cédula / RUC / Pasaporte">
+
     <label>Teléfono</label>
     <input name="phone">
 

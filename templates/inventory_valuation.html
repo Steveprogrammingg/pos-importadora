@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Inventario • Valorización (Costo)</h1>
+
+<div class="panel">
+  <form method="get" action="{{ url_for('inventory_admin.valuation_get') }}" class="form" style="max-width: 980px;">
+    <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 12px;">
+      <div>
+        <label>Sucursal / Bodega</label>
+        <select name="branch_id">
+          <option value="0" {% if not selected_branch_id or selected_branch_id == 0 %}selected{% endif %}>Todas</option>
+          {% for b in branches %}
+            <option value="{{ b.id }}" {% if b.id == selected_branch_id %}selected{% endif %}>{{ b.name }}{% if b.is_warehouse %} (Bodega){% endif %}</option>
+          {% endfor %}
+        </select>
+        <p class="muted" style="margin-top:6px;">La valorización usa el <b>costo</b> del producto (cost_price).</p>
+      </div>
+
+      <div style="display:flex; align-items:flex-end; gap:10px; flex-wrap:wrap;">
+        <button class="btn" type="submit">Ver reporte</button>
+        <a class="btn secondary" href="{{ url_for('inventory_admin.stock_list', branch_id=(selected_branch_id or 0)) }}">Volver a Stock</a>
+        <a class="btn secondary" href="{{ url_for('main.dashboard') }}">Dashboard</a>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="panel" style="margin-top: 12px;">
+  <div style="display:flex; gap:16px; flex-wrap:wrap;">
+    <div class="card">
+      <div class="muted">Cantidad total</div>
+      <div style="font-size:22px;"><b>{{ "%.3f"|format(total_qty) }}</b></div>
+    </div>
+    <div class="card">
+      <div class="muted">Valor total (costo)</div>
+      <div style="font-size:22px;"><b>${{ "%.2f"|format(total_value) }}</b></div>
+    </div>
+  </div>
+
+  {% if not rows %}
+    <p class="muted" style="margin-top:12px;">No hay inventario registrado.</p>
+  {% else %}
+    <div class="table-wrap">
+      <table class="table" style="margin-top: 12px;">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th style="width:120px; text-align:right;">Stock</th>
+            <th style="width:140px; text-align:right;">Costo</th>
+            <th style="width:160px; text-align:right;">Valor</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for r in rows %}
+          <tr>
+            <td>
+              <div style="display:flex; gap:10px; align-items:center;">
+                {% if r.image_path %}
+                  <img src="{{ url_for('static', filename=r.image_path) }}" style="width:42px; height:42px; object-fit:cover; border-radius:8px;">
+                {% endif %}
+                <div>
+                  <b>{{ r.name }}</b>
+                  <div class="muted" style="margin-top:4px;">
+                    {% if r.sku %}SKU: {{ r.sku }}{% endif %}
+                    {% if r.barcode %}
+                      {% if r.sku %} • {% endif %}
+                      Barcode: {{ r.barcode }}
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td style="text-align:right;"><b>{{ "%.3f"|format(r.qty) }}</b></td>
+            <td style="text-align:right;">${{ "%.2f"|format(r.cost) }}</td>
+            <td style="text-align:right;"><b>${{ "%.2f"|format(r.value) }}</b></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+</div>
+
+{% endblock %}

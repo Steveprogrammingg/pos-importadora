@@ -8,6 +8,15 @@ from models import db, login_manager
 migrate = Migrate()
 
 
+
+
+def _safe_render_error():
+    """Renderiza error.html sin romper si el context processor (current_user) falla."""
+    try:
+        return render_template("error.html", message=None)
+    except Exception:
+        # Fallback mínimo (evita recursion)
+        return "<h1>Ups…</h1><p>Ocurrió un error interno. Revisa logs/app.log</p>"
 def create_app() -> Flask:
     app = Flask(__name__)
     app.config.from_object(Config)
@@ -42,6 +51,10 @@ def create_app() -> Flask:
     # Finanzas
     from models.expense import Expense  # noqa: F401
     from models.cash_movement import CashMovement  # noqa: F401
+    from models.cash_count import CashCount  # noqa: F401
+
+    # Inventario avanzado
+    from models.stock_transfer import StockTransfer, StockTransferItem  # noqa: F401
 
     # -------------------------
     # Blueprints
@@ -127,7 +140,7 @@ def create_app() -> Flask:
     def _handle_500(e):
         app.logger.exception("Error 500 no manejado: %s %s", request.method, request.path)
         flash("Ocurrió un error interno. El problema fue registrado.", "error")
-        return render_template("error.html", message=None), 500
+        return _safe_render_error(), 500
 
     @app.errorhandler(403)
     def _handle_403(e):

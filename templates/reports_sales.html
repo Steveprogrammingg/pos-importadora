@@ -61,6 +61,14 @@
     <div class="value" style="font-size:22px;">{{ "%.2f"|format(total_amount) }}</div>
   </div>
   <div class="panel">
+    <div class="label">Efectivo</div>
+    <div class="value" style="font-size:22px;">{{ "%.2f"|format(total_cash or 0) }}</div>
+  </div>
+  <div class="panel">
+    <div class="label">Transferencias</div>
+    <div class="value" style="font-size:22px;">{{ "%.2f"|format(total_transfer or 0) }}</div>
+  </div>
+  <div class="panel">
     <div class="label">Total costo</div>
     <div class="value" style="font-size:22px;">{{ "%.2f"|format(total_cost or 0) }}</div>
   </div>
@@ -88,8 +96,9 @@
           <th>ID</th>
           <th>Fecha</th>
           <th>Tipo</th>
+          <th>Método</th>
           <th style="text-align:right;">Total</th>
-          <th style="width:110px; text-align:right;"></th>
+          <th style="width:200px; text-align:right;"></th>
         </tr>
       </thead>
       <tbody>
@@ -98,9 +107,16 @@
           <td><b>#{{ s.id }}</b></td>
           <td>{{ s.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
           <td>{{ s.price_mode }}</td>
+          <td>{{ "Efectivo" if (s.payment_method or "cash") == "cash" else "Transferencia" }}</td>
           <td style="text-align:right;">{{ "%.2f"|format(s.total) }}</td>
-          <td style="text-align:right;">
+          <td style="text-align:right; display:flex; gap:10px; justify-content:flex-end; align-items:center; flex-wrap:wrap;">
             <a class="link" href="{{ url_for('pos.ticket', sale_id=s.id) }}">Ticket</a>
+            {% if role != "SELLER" %}
+              <a class="link" href="{{ url_for('reports.sale_edit_view', sale_id=s.id) }}">Editar</a>
+              <form method="post" action="{{ url_for('reports.sale_delete', sale_id=s.id) }}" style="display:inline;" onsubmit="return confirm('¿Eliminar la venta #{{ s.id }}? Esto devolverá el stock al inventario y quedará registrado en Kardex.');">
+                <button class="link" type="submit" style="padding:0; border:none; background:transparent; cursor:pointer;">Eliminar</button>
+              </form>
+            {% endif %}
           </td>
         </tr>
         {% endfor %}

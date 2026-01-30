@@ -7,9 +7,14 @@ class KardexMoveType:
     PURCHASE_IN = "PURCHASE_IN"  # compra a bodega (entrada)
     TRANSFER = "TRANSFER"        # transferencias
     ADJUST = "ADJUST"            # ajuste manual
+    SHRINKAGE = "SHRINKAGE"    # merma / faltante
+    DAMAGE = "DAMAGE"          # daño / caducado
     SALE_OUT = "SALE_OUT"        # salida por venta
+    SALE_EDIT = "SALE_EDIT"      # ajuste por edicion de venta
+    SALE_VOID = "SALE_VOID"      # anulacion/borrado de venta
 
-    ALL = {OPENING, PURCHASE_IN, TRANSFER, ADJUST, SALE_OUT}
+
+    ALL = {OPENING, PURCHASE_IN, TRANSFER, ADJUST, SHRINKAGE, DAMAGE, SALE_OUT, SALE_EDIT, SALE_VOID}
 
 
 class KardexMovement(db.Model):
